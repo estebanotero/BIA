@@ -18,6 +18,7 @@ para que puedan entenderse, ejecutarse y mantenerse.
 - [Inventario de items de un workspace de Microsoft Fabric](Inventario_Workspace/README.md): sincronización del inventario con una SQL database, usando staging y `MERGE` para conservar IDs y registrar bajas lógicas.
 - [Documentar un modelo semántico de Fabric con Claude](Documentar_Modelo_Semantico/README.md): notebooks que extraen la estructura y una muestra del modelo, una skill para que Claude redacte el diccionario de datos, y la carga revisada de las descripciones en el modelo.
 - [Pipeline metadata-driven medallion en Fabric, con Claude](Pipeline_Metadata_Medallion/README.md): un pipeline y cuatro notebooks cargan bronze, silver y gold según una base de control en SQL; una skill para que Claude genere la metadata de cada origen y diagnostique las corridas.
+- [Agente de datos en Fabric, con Claude](Agente_Datos_Fabric/README.md): dónde guardar los datos para el agente (lakehouse, warehouse o modelo semántico), un Fabric data agent que Claude usa vía MCP, y un proceso de mejora continua con preguntas y respuestas validadas por cada área de negocio, que entran al agente como ejemplos e instrucciones y lo miden como evaluaciones.
 
 ## Cómo usar este repositorio
 
@@ -46,18 +47,35 @@ BIA/
 │       └── documentar-modelo-semantico/
 │           ├── SKILL.md
 │           └── plantillas/
-└── Pipeline_Metadata_Medallion/
+├── Pipeline_Metadata_Medallion/
+│   ├── README.md
+│   ├── sql/
+│   │   ├── 01_ddl_control.sql
+│   │   └── 02_ejemplo_metadata.sql
+│   ├── notebooks/
+│   │   ├── NB_MDP_00_orquestador.ipynb
+│   │   ├── NB_MDP_10_bronze.ipynb
+│   │   ├── NB_MDP_20_silver.ipynb
+│   │   └── NB_MDP_30_gold.ipynb
+│   ├── skill/
+│   │   └── metadata-medallion/
+│   │       ├── SKILL.md
+│   │       └── plantillas/
+│   └── pruebas/
+│       └── prueba_local.py
+└── Agente_Datos_Fabric/
     ├── README.md
     ├── sql/
-    │   ├── 01_ddl_control.sql
-    │   └── 02_ejemplo_metadata.sql
+    │   └── 01_vistas_agente.sql
     ├── notebooks/
-    │   ├── NB_MDP_00_orquestador.ipynb
-    │   ├── NB_MDP_10_bronze.ipynb
-    │   ├── NB_MDP_20_silver.ipynb
-    │   └── NB_MDP_30_gold.ipynb
+    │   ├── NB_AGT_01_cargar_banco.ipynb
+    │   ├── NB_AGT_02_sincronizar_ejemplos.ipynb
+    │   └── NB_AGT_03_evaluar_y_publicar.ipynb
+    ├── mcp/
+    │   ├── fabric_data_agent_mcp.py
+    │   └── requirements.txt
     ├── skill/
-    │   └── metadata-medallion/
+    │   └── agente-datos-fabric/
     │       ├── SKILL.md
     │       └── plantillas/
     └── pruebas/

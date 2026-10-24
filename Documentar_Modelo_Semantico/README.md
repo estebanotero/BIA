@@ -130,3 +130,4 @@ Probalo primero con un modelo de desarrollo o con una copia del modelo.
 2. Hacer el paso 2 con la skill (opción A) y ajustar el criterio de las descripciones.
 3. Correr `NB_DOC_03` en `DRY_RUN` y después cargarlo.
 4. Subir el primer `diccionario.md` a `modelos/<modelo>/` y decidir si se automatiza con la opción B.
+5. Si el modelo va a ser fuente de un agente de datos, usar el diccionario para redactar sus instrucciones y las respuestas verificadas de *Prep data for AI* (ver [`Agente_Datos_Fabric`](../Agente_Datos_Fabric/README.md)).

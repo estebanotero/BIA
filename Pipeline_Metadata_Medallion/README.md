@@ -239,6 +239,7 @@ Por qué un Switch: en una Copy la conexión se elige al diseñar, así que hace
 | **Diseñar gold** | *"Armame la fact de ventas y sus dimensiones para el modelo semántico"* | Filas de `meta.GOLD_OBJECT` con el `SELECT`, modo de carga y dependencias, sin columnas PII |
 | **Diagnosticar una corrida** | Corré `consultas_operacion.sql` y pegale el resultado | Causa probable, qué corregir y si se puede reintentar |
 | **Documentar el resultado** | Con la skill [`documentar-modelo-semantico`](../Documentar_Modelo_Semantico/README.md) sobre el modelo que lee gold | Diccionario de datos |
+| **Responder preguntas de negocio sobre gold** | Con el caso [`Agente_Datos_Fabric`](../Agente_Datos_Fabric/README.md): vistas `agente.*` sobre gold y un Fabric data agent que Claude consulta por MCP | Respuestas con los datos de gold, y un banco de preguntas validadas por cada área |
 
 La skill se instala copiando la carpeta [`skill/metadata-medallion/`](skill/metadata-medallion/) a `.claude/skills/` del proyecto (Claude Code) o subiéndola como skill en claude.ai.
 

@@ -47,3 +47,6 @@ jobs:
       - name: Despliegue_Entre_Ambientes
         working-directory: Despliegue_Entre_Ambientes/pruebas
         run: python prueba_local.py
+      - name: Monitoreo_Plataforma
+        working-directory: Monitoreo_Plataforma/pruebas
+        run: python prueba_local.py

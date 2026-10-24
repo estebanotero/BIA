@@ -1,6 +1,6 @@
 # Frameworks que faltan
 
-**En corto:** BIA cubre bien el camino *origen → bronze → silver → gold → modelo semántico → agente*, con Claude en cada paso. Lo que falta es lo que rodea a ese camino cuando pasa a producción: **cómo se despliega entre ambientes, cómo se opera y cómo se gobierna**. Esta lista es una propuesta. **Construido:** el 1 ([`Despliegue_Entre_Ambientes`](../Despliegue_Entre_Ambientes/README.md), 2026-10-24). El resto se arma solo con el OK de Eduardo, en su carpeta y por PR, con la misma estructura que el resto (ver [convenciones](convenciones.md)).
+**En corto:** BIA cubre bien el camino *origen → bronze → silver → gold → modelo semántico → agente*, con Claude en cada paso. Lo que falta es lo que rodea a ese camino cuando pasa a producción: **cómo se despliega entre ambientes, cómo se opera y cómo se gobierna**. Esta lista es una propuesta. **Construidos:** el 1 ([`Despliegue_Entre_Ambientes`](../Despliegue_Entre_Ambientes/README.md)) y el 2 ([`Monitoreo_Plataforma`](../Monitoreo_Plataforma/README.md)), los dos el 2026-10-24. El resto se arma solo con el OK de Eduardo, en su carpeta y por PR, con la misma estructura que el resto (ver [convenciones](convenciones.md)).
 
 Revisión del 2026-10-24.
 
@@ -9,7 +9,7 @@ Revisión del 2026-10-24.
 | # | Framework propuesto | Prioridad | Por qué ahora | Depende de |
 |---|---|---|---|---|
 | 1 | [`Despliegue_Entre_Ambientes`](../Despliegue_Entre_Ambientes/README.md) (CI/CD DES → PRD) · **construido** | **Alta** | Los seis casos dicen "probalo en desarrollo" y ninguno dice cómo llega a producción | — |
-| 2 | `Monitoreo_Plataforma` (observabilidad y alertas) | **Alta** | Cada caso deja su log en un lugar distinto y nadie los mira juntos | Inventario, MDP, AGT, PERF |
+| 2 | [`Monitoreo_Plataforma`](../Monitoreo_Plataforma/README.md) (observabilidad y alertas) · **construido** | **Alta** | Cada caso deja su log en un lugar distinto y nadie los mira juntos | Inventario, MDP, AGT, PERF |
 | 3 | `Seguridad_Acceso_Datos` (roles, RLS/CLS, PII) | **Alta** | La PII se detecta en dos casos, pero nada aplica permisos ni etiquetas | PRF, DOC |
 | 4 | `Calidad_Reconciliacion` (calidad en gold y cuadre con el origen) | Media | MDP valida fila por fila en silver; nadie controla totales ni reglas entre tablas | MDP |
 | 5 | `Historia_SCD_Bajas` (SCD tipo 2 y borrado lógico) | Media | Está en los próximos pasos de MDP y es lo primero que pide un negocio con dimensiones que cambian | MDP, PRF |
@@ -31,9 +31,11 @@ Ver [`Despliegue_Entre_Ambientes`](../Despliegue_Entre_Ambientes/README.md). Lo 
 
 **Por qué primero.** Sin esto, todo lo demás queda en DES o se copia a mano a PRD, con el riesgo de que los ambientes diverjan.
 
-## 2. Monitoreo de la plataforma
+## 2. Monitoreo de la plataforma · construido
 
-**Problema.** El estado está repartido: `log.RUN_STEP` (MDP), `agente.eval_historial` (AGT), `perf_*` (PERF), `config.DOMAIN_OBJECTS` (Inventario). Las alertas dependen de que cada pipeline falle.
+Ver [`Monitoreo_Plataforma`](../Monitoreo_Plataforma/README.md). Lo que sigue es la propuesta original. Quedó fuera del primer PR el reporte operativo, que es el paso 7 del README del caso.
+
+**Problema.** El estado está repartido: `log.RUN_STEP` (MDP), `agente_ctl.eval_historial` (AGT), `perf.*` (PERF), `config.DOMAIN_OBJECTS` (Inventario). Las alertas dependen de que cada pipeline falle.
 
 **Qué tendría.**
 - Vistas unificadas sobre esas tablas y un reporte operativo (corridas, duración, filas, fallas, acierto del agente, tendencia de performance).

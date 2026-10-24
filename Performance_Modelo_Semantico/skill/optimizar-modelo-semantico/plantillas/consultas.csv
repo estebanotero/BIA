@@ -1,0 +1,16 @@
+id,nombre,origen,dax,activa
+Q01,Ventas por mes y región,performance_analyzer:Resumen/Gráfico ventas por mes,"EVALUATE
+SUMMARIZECOLUMNS(
+    'Fecha'[Año], 'Fecha'[Mes],
+    'Sucursal'[Región],
+    ""Ventas"", [Ventas]
+)",si
+Q02,Top 20 productos por margen,performance_analyzer:Productos/Tabla top productos,"EVALUATE
+TOPN(
+    20,
+    SUMMARIZECOLUMNS('Producto'[Producto], ""Margen"", [Margen %]),
+    [Margen], DESC
+)",si
+Q03,Tarjeta de clientes activos,manual,"EVALUATE
+ROW(""Clientes activos"", [Clientes activos])",si
+Q04,Ejemplo desactivado,manual,"EVALUATE ROW(""x"", 1)",no

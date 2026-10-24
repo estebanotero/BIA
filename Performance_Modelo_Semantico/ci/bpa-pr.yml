@@ -1,0 +1,50 @@
+# Best Practice Analyzer en cada PR del repo PBIP (plantilla para GitHub Actions)
+#
+# Copiala al repo del modelo como .github/workflows/bpa-pr.yml y ajustá MODELO_TMDL.
+# Corre Tabular Editor 2 (CLI, gratuito, solo Windows) sobre el TMDL de la rama del PR, con las
+# reglas BPA públicas de Microsoft. Si alguna regla de severidad alta falla, el job termina con error.
+#
+# Verificar antes de usar (cambian con las versiones):
+#   - Nombre del asset del release de Tabular Editor 2 (acá: TabularEditor.Portable.zip, versión 2.29.0).
+#   - Que la CLI acepte como entrada el archivo definition/database.tmdl (las notas de la 2.27.0 lo muestran).
+#   - Qué severidad de regla la CLI reporta como error: https://docs.tabulareditor.com/Command-line-Options
+# Para Azure DevOps, la misma idea con un job windows y la opción -V en lugar de -G.
+
+name: BPA del modelo semántico
+
+on:
+  pull_request:
+    paths:
+      - "**/*.SemanticModel/definition/**"
+
+permissions:
+  contents: read
+
+env:
+  TE2_VERSION: "2.29.0"
+  MODELO_TMDL: "<Modelo>.SemanticModel/definition/database.tmdl"
+  REGLAS_BPA: "https://raw.githubusercontent.com/microsoft/Analysis-Services/master/BestPracticeRules/BPARules.json"
+
+jobs:
+  bpa:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Descargar Tabular Editor 2
+        shell: pwsh
+        run: |
+          $url = "https://github.com/TabularEditor/TabularEditor/releases/download/$env:TE2_VERSION/TabularEditor.Portable.zip"
+          Invoke-WebRequest -Uri $url -OutFile te2.zip
+          Expand-Archive te2.zip -DestinationPath te2
+          Invoke-WebRequest -Uri $env:REGLAS_BPA -OutFile BPARules.json
+
+      - name: Correr el Best Practice Analyzer
+        shell: pwsh
+        run: |
+          # -A <reglas>: corre el BPA con ese archivo de reglas. -G: salida con comandos de GitHub Actions
+          # (los hallazgos aparecen como anotaciones en el PR). Exit code 1 si hay errores.
+          $p = Start-Process -FilePath "te2\TabularEditor.exe" `
+               -ArgumentList "`"$env:MODELO_TMDL`" -A BPARules.json -G" `
+               -NoNewWindow -Wait -PassThru
+          exit $p.ExitCode

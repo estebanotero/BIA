@@ -17,6 +17,7 @@ para que puedan entenderse, ejecutarse y mantenerse.
 
 - [Inventario de items de un workspace de Microsoft Fabric](Inventario_Workspace/README.md): sincronización del inventario con una SQL database, usando staging y `MERGE` para conservar IDs y registrar bajas lógicas.
 - [Documentar un modelo semántico de Fabric con Claude](Documentar_Modelo_Semantico/README.md): notebooks que extraen la estructura y una muestra del modelo, una skill para que Claude redacte el diccionario de datos, y la carga revisada de las descripciones en el modelo.
+- [Mejorar la performance de un modelo semántico PBIP con Claude](Performance_Modelo_Semantico/README.md): extiende el caso anterior con notebooks que diagnostican el modelo (Vertipaq Analyzer, Best Practice Analyzer, Direct Lake) y miden consultas DAX con traza, una skill para que Claude proponga optimizaciones y las aplique en los archivos TMDL por PR, y la comparación de antes y después.
 - [Pipeline metadata-driven medallion en Fabric, con Claude](Pipeline_Metadata_Medallion/README.md): un pipeline y cuatro notebooks cargan bronze, silver y gold según una base de control en SQL; una skill para que Claude genere la metadata de cada origen y diagnostique las corridas.
 - [Agente de datos en Fabric, con Claude](Agente_Datos_Fabric/README.md): dónde guardar los datos para el agente (lakehouse, warehouse o modelo semántico), un Fabric data agent que Claude usa vía MCP, y un proceso de mejora continua con preguntas y respuestas validadas por cada área de negocio, que entran al agente como ejemplos e instrucciones y lo miden como evaluaciones.
 
@@ -47,6 +48,21 @@ BIA/
 │       └── documentar-modelo-semantico/
 │           ├── SKILL.md
 │           └── plantillas/
+├── Performance_Modelo_Semantico/
+│   ├── README.md
+│   ├── notebooks/
+│   │   ├── NB_PERF_01_diagnosticar.ipynb
+│   │   ├── NB_PERF_02_medir_consultas.ipynb
+│   │   └── NB_PERF_03_comparar.ipynb
+│   ├── skill/
+│   │   └── optimizar-modelo-semantico/
+│   │       ├── SKILL.md
+│   │       ├── catalogo_optimizaciones.md
+│   │       └── plantillas/
+│   ├── ci/
+│   │   └── bpa-pr.yml
+│   └── pruebas/
+│       └── prueba_local.py
 ├── Pipeline_Metadata_Medallion/
 │   ├── README.md
 │   ├── sql/

@@ -131,3 +131,4 @@ Probalo primero con un modelo de desarrollo o con una copia del modelo.
 3. Correr `NB_DOC_03` en `DRY_RUN` y después cargarlo.
 4. Subir el primer `diccionario.md` a `modelos/<modelo>/` y decidir si se automatiza con la opción B.
 5. Si el modelo va a ser fuente de un agente de datos, usar el diccionario para redactar sus instrucciones y las respuestas verificadas de *Prep data for AI* (ver [`Agente_Datos_Fabric`](../Agente_Datos_Fabric/README.md)).
+6. Para mejorar la performance del modelo, seguir con [`Performance_Modelo_Semantico`](../Performance_Modelo_Semantico/README.md), que reutiliza el `modelo.json` de `NB_DOC_01`.

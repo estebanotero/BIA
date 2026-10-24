@@ -5,7 +5,9 @@
 | Archivo | Para qué |
 |---|---|
 | [`sql/01_ddl_domain_objects.sql`](sql/01_ddl_domain_objects.sql) | Backup, tabla nueva con IDENTITY y PK, migración conservando los ID, staging y el stored procedure de sincronización |
-| [`NB_Workspace_inventory_v2.ipynb`](NB_Workspace_inventory_v2.ipynb) | Notebook nuevo: lee los items, graba la staging y llama al stored procedure |
+| [`notebooks/NB_INV_01_sincronizar_items.ipynb`](notebooks/NB_INV_01_sincronizar_items.ipynb) | Notebook nuevo: lee los items, graba la staging y llama al stored procedure |
+
+La base es la **SQL database de control de la plataforma**: la misma donde el [pipeline medallion](../Pipeline_Metadata_Medallion/README.md) crea los esquemas `meta` y `log` (ver [convenciones](../docs/convenciones.md#15-una-sola-base-de-control)).
 
 ---
 
@@ -96,7 +98,7 @@ Reglas del MERGE:
 2. Revisá que `config.DOMAIN_OBJECTS_NEW` tenga la misma cantidad de filas y los mismos ID que la actual.
 3. **PASO 4 (cambio con impacto)**: el `sp_rename` reemplaza la tabla vieja por la nueva. Antes de correrlo, revisá si hay FK, vistas o reportes que apunten a `config.DOMAIN_OBJECTS`. Para volver atrás, renombrá al revés o restaurá desde `DOMAIN_OBJECTS_BKP_20261022`.
 4. Corré el PASO 5 (el stored procedure).
-5. Importá `NB_Workspace_inventory_v2.ipynb` en Fabric, completá `SQL_SERVER` y `SQL_DATABASE` (los sacás de **Settings > Connection strings** de la SQL database), ajustá `WORKSPACES` y corrélo.
+5. Importá `notebooks/NB_INV_01_sincronizar_items.ipynb` en Fabric, completá `SQL_SERVER` y `SQL_DATABASE` (los sacás de **Settings > Connection strings** de la SQL database), ajustá `WORKSPACES` y corrélo.
 
 ## 6. Cómo validar
 
@@ -121,5 +123,5 @@ Reglas del MERGE:
 
 1. Correr el script hasta el PASO 3 en DES y comparar las tablas.
 2. Confirmar el swap del PASO 4.
-3. Probar el notebook v2 con un item de prueba (alta y baja).
+3. Probar `NB_INV_01` con un item de prueba (alta y baja).
 4. Programarlo en un pipeline diario.

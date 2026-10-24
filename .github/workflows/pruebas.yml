@@ -1,0 +1,49 @@
+# Corre las pruebas locales de cada caso en cada PR: detecta si un cambio en un caso
+# rompe otro (por ejemplo, el CONFIG_JSON que comparten el pipeline medallion y el perfilado).
+name: Pruebas
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  spark:
+    name: Casos con Spark y Delta
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        caso: [Pipeline_Metadata_Medallion, Perfilado_Origen_Medallion, Agente_Datos_Fabric]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyspark==3.5.3 delta-spark==3.2.1 "pandas<3" setuptools uvicorn -r Agente_Datos_Fabric/mcp/requirements.txt
+      - name: prueba_local.py
+        working-directory: ${{ matrix.caso }}/pruebas
+        run: python prueba_local.py
+
+  sin_spark:
+    name: Casos sin Spark
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pandas -r Despliegue_Entre_Ambientes/plantilla_repo/deploy/requirements.txt
+      - name: Performance_Modelo_Semantico
+        working-directory: Performance_Modelo_Semantico/pruebas
+        run: python prueba_local.py
+      - name: Despliegue_Entre_Ambientes
+        working-directory: Despliegue_Entre_Ambientes/pruebas
+        run: python prueba_local.py

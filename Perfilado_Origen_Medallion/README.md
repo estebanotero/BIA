@@ -114,7 +114,7 @@ La skill no reemplaza la revisión: la acelera y deja escrito por qué se decidi
 | Caso | Qué toma de este | Qué le da a este |
 |---|---|---|
 | [Pipeline_Metadata_Medallion](../Pipeline_Metadata_Medallion/README.md) | `alta_<origen>.sql` con entidades, columnas, PII, reglas de `meta.DQ_RULE` y objetos de `meta.GOLD_OBJECT` decididos con datos | La copia exploratoria a bronze, la convención de nombres de bronze y el `CONFIG_JSON` que valida `NB_PRF_03` |
-| [Documentar_Modelo_Semantico](../Documentar_Modelo_Semantico/README.md) | Las descripciones del origen (`descripcion_origen`) y el `diseno_<origen>.md` como contexto para el diccionario | La misma lista de patrones sensibles (`PATRONES_SENSIBLES`) |
+| [Documentar_Modelo_Semantico](../Documentar_Modelo_Semantico/README.md) | Las descripciones del origen (`descripcion_origen`) y el `diseno_<origen>.md` como contexto para el diccionario | La misma lista de patrones sensibles, en [`Comun/patrones_sensibles.json`](../Comun/README.md) |
 | [Performance_Modelo_Semantico](../Performance_Modelo_Semantico/README.md) | Gold nace con claves enteras y sin texto de alta cardinalidad en los hechos: lo que más pesa en Vertipaq | — |
 | [Agente_Datos_Fabric](../Agente_Datos_Fabric/README.md) | Gold con nombres de negocio y sin PII, base de las vistas `agente.*` | — |
 
@@ -205,7 +205,7 @@ Claude **no se conecta al origen, a la base de control ni al lakehouse**: lee el
 | Todas las columnas salen como clave candidata | Pasa en tablas chicas. Mirá la `preferida`; si es incorrecta, decíselo a Claude con la clave real |
 | Falta una relación que existe | El nombre del hijo no se parece al del padre. Corré `NB_PRF_02` con `PROBAR_TODOS = True` (más caro) o declarala en el diseño |
 | Una relación sale `descartada` por pocos huérfanos | Bajá `MIN_INCLUSION` o tratala como relación con huérfanos en gold. Es información de calidad del origen: avisale al dueño |
-| Una columna sale PII por nombre y no lo es (`NombreProducto`) | Es una sugerencia. Claude la deja en `IS_PII = 0` explicándolo; ajustá `PATRONES_SENSIBLES` si se repite |
+| Una columna sale PII por nombre y no lo es (`NombreProducto`) | Es una sugerencia. Claude la deja en `IS_PII = 0` explicándolo; ajustá [`Comun/patrones_sensibles.json`](../Comun/README.md) si se repite: lo comparten este caso y `NB_DOC_01` |
 | `NB_PRF_03` dice que falta bronze | La entidad no tuvo copia exploratoria o tiene otro `BRONZE_TABLE` |
 | Borrar perfiles viejos | `DELETE FROM perfil.columna WHERE corrida_id < '<id>'` (y en las demás tablas `perfil.*`), después `VACUUM`. **Cambio con impacto**: perdés la historia para comparar |
 | Bajar las entidades exploratorias que no se usan | `UPDATE meta.ENTITY SET IS_ACTIVE = 0 WHERE LOAD_GROUP = 'exploracion'`. No las borres: bronze conserva su historia |

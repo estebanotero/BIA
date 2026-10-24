@@ -101,7 +101,7 @@ semantic-link-labs también trae un medidor interactivo de DAX (`dax_perf_optimi
 | **Workspace de prueba** conectado a Git, en una capacidad parecida a la de producción | Medir antes y después sin tocar producción | Workspace settings > Git integration. Para la rama del PR: cambiar la rama del workspace o usar *Branch out to another workspace* [verificar el nombre de la opción en tu tenant] |
 | Endpoint **XMLA** con lectura | Vertipaq, BPA, traza y DAX | Admin portal > Capacity settings > Power BI workloads |
 | Permiso **Build** o **Write** sobre el modelo (Contributor en el workspace de prueba) | Lo mismo; `clear_cache` y la traza pueden pedir **Write** | Workspace > Manage access |
-| Lakehouse por defecto adjunto a los notebooks | Archivos y tablas Delta `perf_*` | Notebook > Lakehouses |
+| `LH_MEDALLION` adjunto como lakehouse por defecto | Archivos y tablas Delta `perf.*` | Notebook > Lakehouses |
 | Datos del workspace de prueba refrescados igual en las dos corridas | Que la comparación sea justa | Refresh manual o programado antes de cada corrida |
 
 La medición se hace sobre el workspace de prueba, no sobre producción: `NB_PERF_02` vacía la caché y le pega al modelo varias veces seguidas.
@@ -194,4 +194,4 @@ Probalo primero en un modelo de desarrollo. La lógica de los notebooks está pr
 2. Conectar un workspace de prueba a su repo y correr la línea base (`antes` y `antes_2`) para medir el ruido.
 3. Primer ciclo con la skill: pocas propuestas de bajo riesgo (columnas sin uso, `DIVIDE`, bidireccionales documentados).
 4. Activar `ci/bpa-pr.yml` en el repo del modelo, después de verificar la versión de Tabular Editor 2.
-5. Si funciona, cargar las tablas `perf_*` en un reporte para seguir la evolución de cada modelo.
+5. Si funciona, cargar las tablas `perf.*` en un reporte para seguir la evolución de cada modelo.

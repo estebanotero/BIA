@@ -224,16 +224,16 @@ else:
                 g.update(RUTA_CSV=csv1, DRY_RUN=dry_run)
 
     correr(plantilla, dry_run=True)
-    assert not spark.catalog.tableExists("agente.banco_preguntas")
+    assert not spark.catalog.tableExists("agente_ctl.banco_preguntas")
     ok("DRY_RUN no crea la tabla")
     correr(plantilla)
-    t = spark.table("agente.banco_preguntas").toPandas().set_index("pregunta_id")
+    t = spark.table("agente_ctl.banco_preguntas").toPandas().set_index("pregunta_id")
     assert len(t) == 4 and t.loc["VTA-001", "estado_efectivo"] == "VALIDADA"
     v2 = plantilla[plantilla.pregunta_id != "VTA-002"].copy()
     v2.loc[v2.pregunta_id == "VTA-101", ["respuesta_esperada", "estado", "validado_por", "fecha_validacion"]] = \
         ["$ 1.234.567", "VALIDADA", "Responsable Comercial", "2026-10-24"]
     correr(v2)
-    t = spark.table("agente.banco_preguntas").toPandas().set_index("pregunta_id")
+    t = spark.table("agente_ctl.banco_preguntas").toPandas().set_index("pregunta_id")
     assert t.loc["VTA-002", "estado_efectivo"] == "OBSOLETA"
     assert t.loc["VTA-101", "estado_efectivo"] == "VALIDADA" and t.loc["VTA-101", "respuesta_esperada"] == "$ 1.234.567"
     ok("MERGE: actualiza la validada y deja OBSOLETA la que salió del CSV")

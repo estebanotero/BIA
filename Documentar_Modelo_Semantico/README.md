@@ -7,7 +7,7 @@
 | [`notebooks/NB_DOC_01_extraer_modelo.ipynb`](notebooks/NB_DOC_01_extraer_modelo.ipynb) | 1 | Lee tablas, columnas, medidas y relaciones, más filas, nulos, cardinalidad y una muestra. Genera `modelo.json` y `descripciones.csv` | No |
 | [`notebooks/NB_DOC_02_redactar_con_claude.ipynb`](notebooks/NB_DOC_02_redactar_con_claude.ipynb) | 2 (opcional) | Llama a la API de Claude, una tabla por llamada, y completa `descripciones.csv` | No |
 | [`skill/documentar-modelo-semantico/`](skill/documentar-modelo-semantico/SKILL.md) | 2 | La misma tarea hecha conversando con Claude (Claude Code o claude.ai), con plantillas | No |
-| [`notebooks/NB_DOC_03_cargar_y_publicar.ipynb`](notebooks/NB_DOC_03_cargar_y_publicar.ipynb) | 3 y 4 | Backup, carga de las descripciones aprobadas, `diccionario.md` y tabla Delta `doc_diccionario` | **Sí**, solo con `DRY_RUN = False` |
+| [`notebooks/NB_DOC_03_cargar_y_publicar.ipynb`](notebooks/NB_DOC_03_cargar_y_publicar.ipynb) | 3 y 4 | Backup, carga de las descripciones aprobadas, `diccionario.md` y tabla Delta `doc.diccionario` | **Sí**, solo con `DRY_RUN = False` |
 
 La skill sigue el formato de [`diccionario-datos`](https://github.com/estebanotero/Agentes/tree/main/ejemplos/skills/diccionario-datos) del repo Agentes. Le agrega ejemplo, nulos, clave, relación, medidas y el diagrama ER.
 
@@ -29,11 +29,11 @@ flowchart LR
     N3 -->|backup| B[/backup_descripciones.csv/]
     N3 -->|TOM lectura y escritura| SM
     N3 --> MD[/diccionario.md/]
-    N3 --> D[(Delta<br/>doc_diccionario)]
+    N3 --> D[(Delta<br/>doc.diccionario)]
     MD -->|PR| GIT[Repo BIA<br/>modelos/&lt;modelo&gt;/]
 ```
 
-Todo queda en el lakehouse por defecto, bajo `Files/doc_modelos/<modelo>/`.
+Todo queda en el lakehouse por defecto de los notebooks (`LH_MEDALLION`, el mismo de gold), bajo `Files/doc_modelos/<modelo>/`, y la tabla en el esquema `doc`.
 
 ## 2. Qué herramientas de Fabric usa, y por qué
 
@@ -63,7 +63,7 @@ Verifiqué en la documentación oficial qué se puede usar para leer y escribir 
 |---|---|---|
 | Capacidad Fabric o Premium con **endpoint XMLA**: lectura para los pasos 1 y 2, **lectura y escritura** para el paso 3 | 1, 3 | Admin portal > Capacity settings > Power BI workloads > XMLA Endpoint |
 | Permiso **Build** o **Write** sobre el modelo (Contributor o más en el workspace) | 1, 3 | Workspace > Manage access |
-| Lakehouse por defecto adjunto a los notebooks | 1, 2, 3 | Notebook > Lakehouses |
+| `LH_MEDALLION` adjunto como lakehouse por defecto | 1, 2, 3 | Notebook > Lakehouses |
 | Key Vault con la API key de Anthropic, y permiso de lectura del secreto para quien corre el notebook | Solo B | Azure Key Vault > Access policies o RBAC |
 
 `list_columns`, `list_measures` y `list_relationships` de `sempy` piden permiso **ReadWrite** sobre el modelo, según su propia documentación. Por eso el paso 1 lee los metadatos con TOM en modo `readonly=True`. Si con Build te da error de permisos, pedí Write sobre el modelo [verificar el mínimo en tu tenant].
@@ -73,7 +73,7 @@ Verifiqué en la documentación oficial qué se puede usar para leer y escribir 
 ### Paso 1. Extraer (solo lectura)
 
 1. Importá los tres notebooks en el workspace (**Import > Notebook**) y adjuntales un lakehouse.
-2. En `NB_DOC_01`, completá `MODELO` y `WORKSPACE`, revisá `PATRONES_SENSIBLES` y corrélo.
+2. En `NB_DOC_01`, completá `MODELO` y `WORKSPACE`, revisá `PATRONES_SENSIBLES` (o subí [`Comun/patrones_sensibles.json`](../Comun/README.md) a `Files/comun/`, que reemplaza la lista y la comparte con el perfilado) y corrélo.
 3. Queda `Files/doc_modelos/<modelo>/modelo.json` y `descripciones.csv`. Si `descripciones.csv` ya existía, el notebook no lo pisa.
 
 ### Paso 2. Redactar
@@ -93,8 +93,8 @@ En los dos casos, **revisá el CSV**: corregí lo necesario y poné `revisado = 
 
 `NB_DOC_03` también genera:
 
-- `diccionario.md`, con un diagrama ER en Mermaid, tablas, columnas (tipo, descripción, ejemplo, nulos, clave, relación y sensibilidad) y medidas. Copialo a este repo en `modelos/<modelo>/diccionario.md` y subilo con un PR.
-- La tabla Delta **`doc_diccionario`** en el lakehouse. Una fila por objeto, con el modelo como clave: cada corrida reemplaza solo las filas de ese modelo. Se puede consultar desde el SQL endpoint o armar un reporte de catálogo encima.
+- `diccionario.md`, con un diagrama ER en Mermaid, tablas, columnas (tipo, descripción, ejemplo, nulos, clave, relación y sensibilidad) y medidas. Copialo al [repo de la implementación](../docs/convenciones.md#16-dónde-van-los-artefactos-de-cada-implementación) en `modelos/<modelo>/diccionario.md` y subilo con un PR.
+- La tabla Delta **`doc.diccionario`** en el lakehouse. Una fila por objeto, con el modelo como clave: cada corrida reemplaza solo las filas de ese modelo. Se puede consultar desde el SQL endpoint o armar un reporte de catálogo encima.
 
 Las descripciones cargadas también se ven en Power BI como tooltip en el panel **Data**, y las usa Copilot para entender el modelo.
 
@@ -129,6 +129,6 @@ Probalo primero con un modelo de desarrollo o con una copia del modelo.
 1. Correr `NB_DOC_01` sobre un modelo de desarrollo y revisar `modelo.json`.
 2. Hacer el paso 2 con la skill (opción A) y ajustar el criterio de las descripciones.
 3. Correr `NB_DOC_03` en `DRY_RUN` y después cargarlo.
-4. Subir el primer `diccionario.md` a `modelos/<modelo>/` y decidir si se automatiza con la opción B.
+4. Subir el primer `diccionario.md` a `modelos/<modelo>/` del [repo de la implementación](../docs/convenciones.md#16-dónde-van-los-artefactos-de-cada-implementación) y decidir si se automatiza con la opción B.
 5. Si el modelo va a ser fuente de un agente de datos, usar el diccionario para redactar sus instrucciones y las respuestas verificadas de *Prep data for AI* (ver [`Agente_Datos_Fabric`](../Agente_Datos_Fabric/README.md)).
 6. Para mejorar la performance del modelo, seguir con [`Performance_Modelo_Semantico`](../Performance_Modelo_Semantico/README.md), que reutiliza el `modelo.json` de `NB_DOC_01`.

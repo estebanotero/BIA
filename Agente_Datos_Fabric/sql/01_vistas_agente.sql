@@ -101,3 +101,4 @@ SELECT 'gold.fact_ventas', COUNT(*), SUM(importe_ars) FROM gold.fact_ventas;
    vistas. Si querés que solo vea el esquema agente:
    --------------------------------------------------------------------- */
 -- GRANT SELECT ON SCHEMA::agente TO [grupo-agente-ventas@tu-dominio];  -- [dato a confirmar]
+-- No dar permisos sobre agente_ctl: ahí están el banco de preguntas y las respuestas esperadas de la evaluación.

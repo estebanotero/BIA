@@ -1,6 +1,6 @@
 # Frameworks que faltan
 
-**En corto:** BIA cubre bien el camino *origen → bronze → silver → gold → modelo semántico → agente*, con Claude en cada paso. Lo que falta es lo que rodea a ese camino cuando pasa a producción: **cómo se despliega entre ambientes, cómo se opera y cómo se gobierna**. Esta lista es una propuesta: **ninguno está construido**. Cada uno se arma solo con el OK de Eduardo, en su carpeta y por PR, con la misma estructura que el resto (ver [convenciones](convenciones.md)).
+**En corto:** BIA cubre bien el camino *origen → bronze → silver → gold → modelo semántico → agente*, con Claude en cada paso. Lo que falta es lo que rodea a ese camino cuando pasa a producción: **cómo se despliega entre ambientes, cómo se opera y cómo se gobierna**. Esta lista es una propuesta. **Construido:** el 1 ([`Despliegue_Entre_Ambientes`](../Despliegue_Entre_Ambientes/README.md), 2026-10-24). El resto se arma solo con el OK de Eduardo, en su carpeta y por PR, con la misma estructura que el resto (ver [convenciones](convenciones.md)).
 
 Revisión del 2026-10-24.
 
@@ -8,7 +8,7 @@ Revisión del 2026-10-24.
 
 | # | Framework propuesto | Prioridad | Por qué ahora | Depende de |
 |---|---|---|---|---|
-| 1 | `Despliegue_Entre_Ambientes` (CI/CD DES → PRD) | **Alta** | Los seis casos dicen "probalo en desarrollo" y ninguno dice cómo llega a producción | — |
+| 1 | [`Despliegue_Entre_Ambientes`](../Despliegue_Entre_Ambientes/README.md) (CI/CD DES → PRD) · **construido** | **Alta** | Los seis casos dicen "probalo en desarrollo" y ninguno dice cómo llega a producción | — |
 | 2 | `Monitoreo_Plataforma` (observabilidad y alertas) | **Alta** | Cada caso deja su log en un lugar distinto y nadie los mira juntos | Inventario, MDP, AGT, PERF |
 | 3 | `Seguridad_Acceso_Datos` (roles, RLS/CLS, PII) | **Alta** | La PII se detecta en dos casos, pero nada aplica permisos ni etiquetas | PRF, DOC |
 | 4 | `Calidad_Reconciliacion` (calidad en gold y cuadre con el origen) | Media | MDP valida fila por fila en silver; nadie controla totales ni reglas entre tablas | MDP |
@@ -16,7 +16,9 @@ Revisión del 2026-10-24.
 | 6 | `Catalogo_Linaje` (catálogo unificado) | Baja | Ya existen las piezas (inventario, metadata, perfil, diccionario), falta unirlas | Inventario, MDP, PRF, DOC |
 | 7 | `Costos_Capacidad` (FinOps de Fabric) | Baja | Útil cuando haya varias cargas programadas en la misma capacidad | MDP, Monitoreo |
 
-## 1. Despliegue entre ambientes (CI/CD)
+## 1. Despliegue entre ambientes (CI/CD) · construido
+
+Ver [`Despliegue_Entre_Ambientes`](../Despliegue_Entre_Ambientes/README.md). Lo que sigue es la propuesta original.
 
 **Problema.** Hoy cada caso se importa a mano en un workspace. Los nombres que cambian entre DES y PRD (base de control, lakehouse, conexiones, IDs del agente) se escriben dentro de los notebooks.
 

@@ -11,6 +11,7 @@ El patrón es el mismo en todos: **un notebook deja los datos listos, Claude tra
 | Caso | Para qué | Prefijo | Skill de Claude |
 |---|---|---|---|
 | [Inventario de un workspace](Inventario_Workspace/README.md) | Sincronizar los items de uno o más workspaces con la base de control (staging + `MERGE`, IDs estables y bajas lógicas) | `NB_INV_` | — |
+| [Desplegar entre ambientes (CI/CD)](Despliegue_Entre_Ambientes/README.md) | Llevar lo que se arma en DES a TEST y PRD: repo por implementación, `parameter.yml`, migraciones de la base de control y GitHub Actions con fabric-cicd y aprobación para PRD | — | `revisar-despliegue-fabric` |
 
 ### Datos: del origen a gold
 
@@ -32,7 +33,7 @@ El patrón es el mismo en todos: **un notebook deja los datos listos, Claude tra
 | Documento | Qué tiene |
 |---|---|
 | [Convenciones](docs/convenciones.md) | Estructura de carpetas, nombres, rutas del lakehouse, una sola base de control, dónde van los artefactos de cada implementación y los desvíos corregidos |
-| [Frameworks propuestos](docs/frameworks_propuestos.md) | Lo que falta para llevar esto a producción (CI/CD, monitoreo, seguridad, calidad, SCD2, catálogo, costos), priorizado y sin construir |
+| [Frameworks propuestos](docs/frameworks_propuestos.md) | Lo que falta para llevar esto a producción (monitoreo, seguridad, calidad, SCD2, catálogo, costos), priorizado. CI/CD ya está construido |
 
 ## Cómo se conectan los casos
 
@@ -87,7 +88,7 @@ flowchart LR
 | 7 | Performance del modelo (reusa `modelo.json`) | PR con cambios TMDL e `informe_perf.md` | El modelo en producción |
 | 8 | Agente de datos sobre `agente.*` y el modelo | Agente publicado y evaluado | Negocio, Claude vía MCP |
 
-El inventario es independiente: se puede correr en cualquier momento para tener la lista de items de la plataforma.
+El inventario es independiente: se puede correr en cualquier momento para tener la lista de items de la plataforma. El [despliegue entre ambientes](Despliegue_Entre_Ambientes/README.md) acompaña todos los pasos: lo que se arma en DES llega a TEST y PRD por PR, y los artefactos de cada paso (`alta_<origen>.sql`, diccionarios, instrucciones de agentes) viven en el repo de la implementación.
 
 ### Qué se comparte entre casos
 
@@ -111,18 +112,20 @@ El inventario es independiente: se puede correr en cualquier momento para tener 
 | Documentar_Modelo_Semantico | — | No |
 | Performance_Modelo_Semantico | Sí, lógica de los notebooks | No |
 | Agente_Datos_Fabric | Sí, reglas del banco y MCP contra un agente simulado | No: SDK y vistas sin ejecutar |
+| Despliegue_Entre_Ambientes | Sí, scripts y workflows con el validador real de fabric-cicd 1.4.0 | No: sin despliegue real, login OIDC ni conexión a la base |
 
-Probá siempre primero en un workspace de desarrollo.
+Las pruebas locales corren en cada PR con [`.github/workflows/pruebas.yml`](.github/workflows/pruebas.yml). Probá siempre primero en un workspace de desarrollo.
 
 ## Instalar las skills
 
-Cada skill está en `<Caso>/skill/<nombre>/`. Para Claude Code, copiá la carpeta a `.claude/skills/` del proyecto donde trabajás; en claude.ai, subila como skill. Las cinco skills de BIA se pueden instalar juntas: cada una dice en su `description` cuándo usarla.
+Cada skill está en `<Caso>/skill/<nombre>/`. Para Claude Code, copiá la carpeta a `.claude/skills/` del proyecto donde trabajás; en claude.ai, subila como skill. Las seis skills de BIA se pueden instalar juntas: cada una dice en su `description` cuándo usarla.
 
 ## Estructura
 
 ```text
 BIA/
 ├── README.md
+├── .github/workflows/pruebas.yml
 ├── docs/
 │   ├── convenciones.md
 │   └── frameworks_propuestos.md
@@ -132,7 +135,8 @@ BIA/
 ├── Pipeline_Metadata_Medallion/   sql/ · notebooks/NB_MDP_00..30 · skill/metadata-medallion/ · pruebas/
 ├── Documentar_Modelo_Semantico/   notebooks/NB_DOC_01..03 · skill/documentar-modelo-semantico/
 ├── Performance_Modelo_Semantico/  notebooks/NB_PERF_01..03 · skill/optimizar-modelo-semantico/ · ci/ · pruebas/
-└── Agente_Datos_Fabric/           sql/ · notebooks/NB_AGT_01..03 · mcp/ · skill/agente-datos-fabric/ · pruebas/
+├── Agente_Datos_Fabric/           sql/ · notebooks/NB_AGT_01..03 · mcp/ · skill/agente-datos-fabric/ · pruebas/
+└── Despliegue_Entre_Ambientes/    plantilla_repo/ (workflows, deploy/, parameter.yml) · skill/revisar-despliegue-fabric/ · pruebas/
 ```
 
 La estructura de cada carpeta y las convenciones de nombres están en [docs/convenciones.md](docs/convenciones.md).

@@ -1,0 +1,62 @@
+# Workflow reutilizable: despliega un ambiente. Lo llama desplegar.yml.
+# Variables por environment de GitHub (Settings > Environments > <TEST|PRD> > Variables):
+#   AZURE_CLIENT_ID, AZURE_TENANT_ID  identidad de despliegue (app de Entra ID con credencial federada)
+#   FABRIC_WORKSPACE_ID               workspace destino
+#   SQL_SERVER, SQL_DATABASE          base de control del ambiente
+# El environment PRD lleva "Required reviewers": el job espera la aprobación antes de empezar.
+name: Desplegar un ambiente
+
+on:
+  workflow_call:
+    inputs:
+      ambiente:
+        required: true
+        type: string
+      borrar_huerfanos:
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  desplegar:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.ambiente }}
+    env:
+      FABRIC_WORKSPACE_ID: ${{ vars.FABRIC_WORKSPACE_ID }}
+      SQL_SERVER: ${{ vars.SQL_SERVER }}
+      SQL_DATABASE: ${{ vars.SQL_DATABASE }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r deploy/requirements.txt
+
+      - name: Driver ODBC 18 (para la base de control)
+        run: |
+          if ! (odbcinst -q -d 2>/dev/null | grep -q "ODBC Driver 18 for SQL Server"); then
+            curl -sSL -O "https://packages.microsoft.com/config/ubuntu/$(grep VERSION_ID /etc/os-release | cut -d '"' -f 2)/packages-microsoft-prod.deb"
+            sudo dpkg -i packages-microsoft-prod.deb
+            sudo apt-get update
+            sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18
+          fi
+
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          allow-no-subscriptions: true
+
+      - name: Validar (GUID sin parametrizar es error)
+        run: python deploy/validar.py --ambientes ${{ inputs.ambiente }} --estricto
+
+      - name: Plan de migraciones
+        run: python deploy/aplicar_sql.py --ambiente ${{ inputs.ambiente }} --solo-plan
+
+      - name: Aplicar migraciones a la base de control
+        run: python deploy/aplicar_sql.py --ambiente ${{ inputs.ambiente }}
+
+      - name: Desplegar items de Fabric
+        run: >
+          python deploy/desplegar_items.py --ambiente ${{ inputs.ambiente }}
+          ${{ inputs.borrar_huerfanos && '--borrar-huerfanos' || '' }}

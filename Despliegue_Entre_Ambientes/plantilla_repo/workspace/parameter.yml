@@ -1,0 +1,40 @@
+# parameter.yml · reemplazos de DES a cada ambiente (formato de fabric-cicd 1.4.0)
+#
+# Los items del repo se exportan desde el workspace de DES, así que traen los ID de DES.
+# Acá se dice qué ID de DES se reemplaza por cuál en TEST y PRD.
+#   $workspace.$id                      -> el ID del workspace destino
+#   $items.<Tipo>.<Nombre>.$id          -> el ID del item con ese nombre en el workspace destino
+#   $items.<Tipo>.<Nombre>.$sqlendpoint -> el endpoint SQL (Lakehouse, Warehouse, SQLDatabase)
+# Los ID de DES los ves en la URL del item en el portal, o en los archivos del repo.
+# deploy/validar.py avisa si queda algún GUID sin reemplazo.
+
+find_replace:
+  # 1. Workspace de DES (aparece en la dependencia de lakehouse de cada notebook)
+  - find_value: "11111111-1111-1111-1111-111111111111"     # <id del workspace de DES>
+    replace_value:
+      TEST: "$workspace.$id"
+      PRD: "$workspace.$id"
+    item_type: "Notebook"
+
+  # 2. Lakehouse por defecto de los notebooks: LH_MEDALLION de DES -> el del ambiente
+  - find_value: "22222222-2222-2222-2222-222222222222"     # <id de LH_MEDALLION en DES>
+    replace_value:
+      TEST: "$items.Lakehouse.LH_MEDALLION.$id"
+      PRD: "$items.Lakehouse.LH_MEDALLION.$id"
+    item_type: "Notebook"
+
+  # 3. Conexión a la base de control en el pipeline (actividades Stored procedure y Lookup).
+  #    Las conexiones no son items del workspace: se crean una vez por ambiente en
+  #    Settings > Manage connections and gateways y se copia su ID acá.
+  - find_value: "33333333-3333-3333-3333-333333333333"     # <id de la conexión a la base de control de DES>
+    replace_value:
+      TEST: "<id de la conexión a la base de control de TEST>"
+      PRD: "<id de la conexión a la base de control de PRD>"
+    item_type: "DataPipeline"
+
+  # 4. Servidor de la base de control escrito en un notebook (NB_INV_01: SQL_SERVER)
+  - find_value: "<servidor-des>.database.fabric.microsoft.com"
+    replace_value:
+      TEST: "<servidor-test>.database.fabric.microsoft.com"
+      PRD: "<servidor-prd>.database.fabric.microsoft.com"
+    item_type: "Notebook"

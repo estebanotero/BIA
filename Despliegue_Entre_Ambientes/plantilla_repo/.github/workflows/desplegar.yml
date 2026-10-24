@@ -1,0 +1,36 @@
+# Cada merge a main despliega en TEST y, con la aprobación del environment PRD, en PRD.
+# Los dos ambientes reciben exactamente el mismo commit.
+name: Desplegar
+
+on:
+  push:
+    branches: [main]
+    paths: ["workspace/**", "sql/**", "deploy/**"]
+  workflow_dispatch:
+    inputs:
+      borrar_huerfanos:
+        description: "Borrar del workspace los items que ya no están en el repo (nunca lakehouses ni bases)"
+        type: boolean
+        default: false
+
+permissions:
+  id-token: write      # OIDC con Entra ID: no hay secretos de Azure guardados en GitHub
+  contents: read
+
+concurrency:
+  group: desplegar
+  cancel-in-progress: false
+
+jobs:
+  test:
+    uses: ./.github/workflows/_desplegar_ambiente.yml
+    with:
+      ambiente: TEST
+      borrar_huerfanos: ${{ inputs.borrar_huerfanos == true }}
+
+  prd:
+    needs: test
+    uses: ./.github/workflows/_desplegar_ambiente.yml
+    with:
+      ambiente: PRD
+      borrar_huerfanos: ${{ inputs.borrar_huerfanos == true }}

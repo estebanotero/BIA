@@ -44,7 +44,7 @@ Entrada: un tema o área ("preguntas de Comercial sobre ventas"), un log de preg
 
 ## C. Analizar una evaluación
 
-Entrada: `<fecha>_<evaluation_id>_fallas.csv` de `NB_AGT_03` y, si hay, el resumen de `agente.eval_historial`.
+Entrada: `<fecha>_<evaluation_id>_fallas.csv` de `NB_AGT_03` y, si hay, el resumen de `agente_ctl.eval_historial`.
 
 1. Clasificá cada falla en **una** causa:
 

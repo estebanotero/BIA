@@ -1,0 +1,8 @@
+{
+  "descripcion": "Substrings de nombres de columna que se tratan como datos personales o sensibles. Coincide sin distinguir mayúsculas. Lo leen NB_DOC_01 y NB_PRF_01 desde Files/comun/patrones_sensibles.json.",
+  "patrones": [
+    "email", "mail", "dni", "cuit", "cuil", "documento", "telefono", "phone", "celular",
+    "direccion", "address", "domicilio", "nombre", "apellido", "name", "cbu", "iban",
+    "tarjeta", "card", "password", "pass", "token", "nacimiento", "birth", "salario", "sueldo"
+  ]
+}

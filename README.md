@@ -10,7 +10,7 @@ El patrón es el mismo en todos: **un notebook deja los datos listos, Claude tra
 
 | Caso | Para qué | Prefijo | Skill de Claude |
 |---|---|---|---|
-| [Inventario de un workspace](Inventario_Workspace/README.md) | Sincronizar los items de uno o más workspaces con una SQL database (staging + `MERGE`, IDs estables y bajas lógicas) | — | — |
+| [Inventario de un workspace](Inventario_Workspace/README.md) | Sincronizar los items de uno o más workspaces con la base de control (staging + `MERGE`, IDs estables y bajas lógicas) | `NB_INV_` | — |
 
 ### Datos: del origen a gold
 
@@ -31,7 +31,7 @@ El patrón es el mismo en todos: **un notebook deja los datos listos, Claude tra
 
 | Documento | Qué tiene |
 |---|---|
-| [Convenciones y desvíos](docs/convenciones.md) | Estructura de carpetas, nombres, rutas del lakehouse, reglas comunes y los desvíos detectados entre casos, con la corrección propuesta |
+| [Convenciones](docs/convenciones.md) | Estructura de carpetas, nombres, rutas del lakehouse, una sola base de control, dónde van los artefactos de cada implementación y los desvíos corregidos |
 | [Frameworks propuestos](docs/frameworks_propuestos.md) | Lo que falta para llevar esto a producción (CI/CD, monitoreo, seguridad, calidad, SCD2, catálogo, costos), priorizado y sin construir |
 
 ## Cómo se conectan los casos
@@ -77,7 +77,7 @@ flowchart LR
 
 | Paso | Caso | Qué sale | Lo usa |
 |---|---|---|---|
-| 0 | Pipeline medallion: base de control, lakehouse y pipeline armados en desarrollo | `DB_MDP_CONTROL`, `LH_MEDALLION`, `PL_MDP_MEDALLION` | Todos los pasos siguientes |
+| 0 | Pipeline medallion: base de control, lakehouse y pipeline armados en desarrollo | Base de control (`DB_TDM_Platform`), `LH_MEDALLION`, `PL_MDP_MEDALLION` | Todos los pasos siguientes |
 | 1 | Perfilado: carga exploratoria (`LOAD_GROUP = exploracion`, `p_layers = bronze`) | Bronze con una copia completa | Paso 2 |
 | 2 | Perfilado: `NB_PRF_01` y `NB_PRF_02` | `perfil.*`, `perfil.json`, `resumen_perfil.md` | Paso 3 |
 | 3 | Perfilado: skill `disenar-medallion-desde-perfil` | `diseno_<origen>.md`, `alta_<origen>.sql` | Pasos 4 y 5 |
@@ -98,7 +98,8 @@ El inventario es independiente: se puede correr en cualquier momento para tener 
 | `bronze.*` | Pipeline medallion | Perfilado, silver |
 | `gold.*` | Pipeline medallion | Modelo semántico, vistas `agente.*` |
 | `Files/doc_modelos/<modelo>/modelo.json` | `NB_DOC_01` | Skill de documentación, Performance |
-| `PATRONES_SENSIBLES` (lista de nombres PII) | Copiada en `NB_DOC_01` y `NB_PRF_01` | — (ver desvío 7 en [convenciones](docs/convenciones.md)) |
+| [`Comun/patrones_sensibles.json`](Comun/README.md) (nombres de columna PII) | Una persona, por PR | `NB_DOC_01`, `NB_PRF_01` |
+| Base de control: `config.*`, `meta.*`, `log.*` | Inventario, Pipeline medallion, Perfilado | Pipeline medallion, `NB_PRF_03` |
 
 ## Estado de prueba
 
@@ -125,7 +126,8 @@ BIA/
 ├── docs/
 │   ├── convenciones.md
 │   └── frameworks_propuestos.md
-├── Inventario_Workspace/          sql/ · NB_Workspace_inventory_v2.ipynb
+├── Comun/                         patrones_sensibles.json
+├── Inventario_Workspace/          sql/ · notebooks/NB_INV_01
 ├── Perfilado_Origen_Medallion/    sql/ · notebooks/NB_PRF_01..03 · skill/disenar-medallion-desde-perfil/ · pruebas/
 ├── Pipeline_Metadata_Medallion/   sql/ · notebooks/NB_MDP_00..30 · skill/metadata-medallion/ · pruebas/
 ├── Documentar_Modelo_Semantico/   notebooks/NB_DOC_01..03 · skill/documentar-modelo-semantico/

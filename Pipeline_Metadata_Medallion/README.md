@@ -180,7 +180,7 @@ erDiagram
 |---|---|---|
 | Workspace en capacidad Fabric (F o trial) | Todo | Workspace settings > License info |
 | Rol **Contributor** o más en el workspace | Crear y correr items | Workspace > Manage access |
-| SQL database (ej. `DB_MDP_CONTROL`) | Base de control | New item > SQL database |
+| SQL database de control de la plataforma (ej. `DB_TDM_Platform`): los esquemas `meta` y `log` conviven con `config` del [inventario](../Inventario_Workspace/README.md) | Base de control | New item > SQL database, o la que ya existe |
 | Lakehouse con esquemas habilitados (ej. `LH_MEDALLION`) y esquemas `bronze`, `silver`, `gold` | Datos | New item > Lakehouse > *Lakehouse schemas* |
 | Una **conexión de Fabric** por origen SQL (con gateway si es on-premises) | Copy activity | Settings > Manage connections and gateways |
 | Zona horaria de la sesión de Spark en UTC (default) | Que el watermark de archivos sea coherente | Solo si alguien la cambió en el entorno |

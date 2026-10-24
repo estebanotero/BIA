@@ -9,7 +9,7 @@
 | [`sql/01_vistas_agente.sql`](sql/01_vistas_agente.sql) | Esquema `agente` con vistas de negocio sobre gold, sin PII | Crea vistas |
 | [`skill/agente-datos-fabric/plantillas/banco_preguntas.csv`](skill/agente-datos-fabric/plantillas/banco_preguntas.csv) | El banco de preguntas: ejemplos y evaluaciones, con quién y cuándo las validó | — |
 | [`skill/agente-datos-fabric/plantillas/instrucciones_agente.md`](skill/agente-datos-fabric/plantillas/instrucciones_agente.md) | Descripción e instrucciones del agente y de cada fuente | — |
-| [`notebooks/NB_AGT_01_cargar_banco.ipynb`](notebooks/NB_AGT_01_cargar_banco.ipynb) | Valida el CSV y lo guarda en la tabla Delta `agente.banco_preguntas` | Sí, con `DRY_RUN = False` |
+| [`notebooks/NB_AGT_01_cargar_banco.ipynb`](notebooks/NB_AGT_01_cargar_banco.ipynb) | Valida el CSV y lo guarda en la tabla Delta `agente_ctl.banco_preguntas` | Sí, con `DRY_RUN = False` |
 | [`notebooks/NB_AGT_02_sincronizar_ejemplos.ipynb`](notebooks/NB_AGT_02_sincronizar_ejemplos.ipynb) | Lleva ejemplos e instrucciones validados al **borrador** del agente, con backup | Sí, en el borrador, con `DRY_RUN = False` |
 | [`notebooks/NB_AGT_03_evaluar_y_publicar.ipynb`](notebooks/NB_AGT_03_evaluar_y_publicar.ipynb) | Evalúa, compara con la última versión aprobada y publica solo si aprueba | Historial de evaluaciones; publica solo si se lo pedís |
 | [`mcp/fabric_data_agent_mcp.py`](mcp/fabric_data_agent_mcp.py) | MCP local para que Claude Code o Claude Desktop le pregunten al agente | No |
@@ -122,7 +122,7 @@ Requisitos de todo lo anterior: capacidad **F2 o superior** (o P1 con Fabric) y,
 
 | Opción | Para el área | Para los notebooks | Historia |
 |---|---|---|---|
-| **CSV o Excel revisado por el área + tabla Delta `agente.banco_preguntas` (recomendada)** | Edita una planilla | Lectura directa con Spark | `DESCRIBE HISTORY` de Delta + el CSV en Git |
+| **CSV o Excel revisado por el área + tabla Delta `agente_ctl.banco_preguntas` (recomendada)** | Edita una planilla | Lectura directa con Spark | `DESCRIBE HISTORY` de Delta + el CSV en Git |
 | SQL database de control (como `Pipeline_Metadata_Medallion`) | Necesita un formulario | Necesita conexión desde Spark | Tablas de auditoría |
 | Solo `fewshots.json` en Git | No sirve para el área | — | Git |
 
@@ -220,6 +220,7 @@ Los dos números son un punto de partida [dato a confirmar con cada área]. Para
 
 | Qué | Para qué | Dónde se configura |
 |---|---|---|
+| Usuarios del agente **sin** permiso sobre el esquema `agente_ctl` (banco y evaluaciones) | Que no vean las respuestas esperadas | `GRANT SELECT` solo sobre `agente` |
 | Capacidad F2 o superior (o P1 con Fabric) | Data agent, MCP y evaluación | Workspace settings > License info |
 | Tenant: Fabric data agent y procesamiento entre geografías para IA habilitados [verificar nombre exacto de cada opción] | Data agent | Admin portal > Tenant settings |
 | Lakehouse gold con esquemas (ej. `LH_MEDALLION`) | Datos y tablas del banco | El de `Pipeline_Metadata_Medallion` |
@@ -237,7 +238,7 @@ Corré [`sql/01_vistas_agente.sql`](sql/01_vistas_agente.sql) en el SQL analytic
 
 1. **New item > Data agent** (ej. `AG_VENTAS`).
 2. Agregá el lakehouse y seleccioná **solo** las vistas del esquema `agente`. Si hay modelo semántico con los KPIs, agregalo también y configurá *Prep data for AI* en el modelo.
-3. Pedile a Claude: *"Usá la skill agente-datos-fabric para redactar las instrucciones del agente"*, con el diccionario de datos y las vistas. Revisá el resultado con el área y guardalo en `Files/agente/AG_VENTAS/instrucciones_agente.md` (y en este repo, en `agentes/AG_VENTAS/`).
+3. Pedile a Claude: *"Usá la skill agente-datos-fabric para redactar las instrucciones del agente"*, con el diccionario de datos y las vistas. Revisá el resultado con el área y guardalo en `Files/agente/AG_VENTAS/instrucciones_agente.md` (y en el [repo de la implementación](../docs/convenciones.md#16-dónde-van-los-artefactos-de-cada-implementación), en `agentes/AG_VENTAS/`).
 
 ### Paso 3. Primer banco de preguntas
 
@@ -311,7 +312,7 @@ Si querés que Claude escriba el DAX (opción B de la sección 4.2), [Fabric IQ 
 | `NB_AGT_01` con una fila `VALIDADA` sin `validado_por` | Error, no escribe nada |
 | `NB_AGT_01` con la misma pregunta como ejemplo y evaluación | Error por fuga |
 | `NB_AGT_02` con `DRY_RUN = True` | Plan visible, backup guardado, el agente no cambia |
-| `NB_AGT_03` con `ETAPA = 'sandbox'` | Una fila en `agente.eval_historial` y el CSV de fallas |
+| `NB_AGT_03` con `ETAPA = 'sandbox'` | Una fila en `agente_ctl.eval_historial` y el CSV de fallas |
 | Un usuario sin permiso sobre el lakehouse le pregunta al agente | Error de autorización o respuesta vacía, nunca datos |
 | Claude Code con el MCP: *"¿Cuánto vendimos en marzo de 2026?"* | Llama a `preguntar_agente_fabric` y cita el agente y el período |
 | [`pruebas/prueba_local.py`](pruebas/prueba_local.py) | `Todo OK` |

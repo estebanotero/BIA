@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+**/pruebas/work_prueba_local/
+.venv/
+venv/

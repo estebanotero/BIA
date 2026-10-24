@@ -16,6 +16,7 @@ para que puedan entenderse, ejecutarse y mantenerse.
 ### Casos documentados
 
 - [Inventario de items de un workspace de Microsoft Fabric](Inventario_Workspace/README.md): sincronización del inventario con una SQL database, usando staging y `MERGE` para conservar IDs y registrar bajas lógicas.
+- [Documentar un modelo semántico de Fabric con Claude](Documentar_Modelo_Semantico/README.md): notebooks que extraen la estructura y una muestra del modelo, una skill para que Claude redacte el diccionario de datos, y la carga revisada de las descripciones en el modelo.
 
 ## Cómo usar este repositorio
 
@@ -29,11 +30,21 @@ para que puedan entenderse, ejecutarse y mantenerse.
 ```text
 BIA/
 ├── README.md
-└── Inventario_Workspace/
+├── Inventario_Workspace/
+│   ├── README.md
+│   ├── NB_Workspace_inventory_v2.ipynb
+│   └── sql/
+│       └── 01_ddl_domain_objects.sql
+└── Documentar_Modelo_Semantico/
     ├── README.md
-    ├── NB_Workspace_inventory_v2.ipynb
-    └── sql/
-        └── 01_ddl_domain_objects.sql
+    ├── notebooks/
+    │   ├── NB_DOC_01_extraer_modelo.ipynb
+    │   ├── NB_DOC_02_redactar_con_claude.ipynb
+    │   └── NB_DOC_03_cargar_y_publicar.ipynb
+    └── skill/
+        └── documentar-modelo-semantico/
+            ├── SKILL.md
+            └── plantillas/
 ```
 
 Cada solución se organiza en una carpeta propia. Cuando sea útil, incluirá:

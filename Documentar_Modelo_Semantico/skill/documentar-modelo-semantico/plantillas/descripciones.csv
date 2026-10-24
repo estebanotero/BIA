@@ -1,0 +1,4 @@
+tipo_objeto,tabla,objeto,descripcion_actual,descripcion_nueva,sensibilidad,revisado
+tabla,[Tabla],[Tabla],,[Qué representa una fila],Interna,no
+columna,[Tabla],[Columna],,[Descripción o [dato a confirmar]],Sensible,no
+medida,[Tabla],[Medida],,[Qué calcula en palabras],,no

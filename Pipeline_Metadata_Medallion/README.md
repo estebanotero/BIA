@@ -235,6 +235,7 @@ Por qué un Switch: en una Copy la conexión se elige al diseñar, así que hace
 
 | Tarea | Cómo | Qué entrega |
 |---|---|---|
+| **Perfilar un origen nuevo antes de diseñar** | Con el caso [`Perfilado_Origen_Medallion`](../Perfilado_Origen_Medallion/README.md): copia exploratoria a bronze, perfil con datos y la skill `disenar-medallion-desde-perfil` | La misma metadata, con claves, tipos, PII y reglas decididas con evidencia del perfil y probadas contra bronze |
 | **Sumar un origen o tablas** | Pegale a Claude el DDL (`INFORMATION_SCHEMA.COLUMNS`) o una muestra y pedile *"Usá la skill metadata-medallion para sumar estas tablas"* | Script SQL idempotente con entidad, columnas en snake_case, tipos, PII y reglas de calidad, más la lista de `[dato a confirmar]` |
 | **Diseñar gold** | *"Armame la fact de ventas y sus dimensiones para el modelo semántico"* | Filas de `meta.GOLD_OBJECT` con el `SELECT`, modo de carga y dependencias, sin columnas PII |
 | **Diagnosticar una corrida** | Corré `consultas_operacion.sql` y pegale el resultado | Causa probable, qué corregir y si se puede reintentar |
@@ -279,7 +280,7 @@ Claude **no escribe en la base de control ni en el lakehouse**: genera scripts q
 ## Próximos pasos
 
 1. Crear en desarrollo la SQL database y el lakehouse, y correr `01_ddl_control.sql`.
-2. Elegir 2 o 3 tablas reales de un origen y generar su metadata con la skill.
+2. Elegir 2 o 3 tablas reales de un origen, perfilarlas con [`Perfilado_Origen_Medallion`](../Perfilado_Origen_Medallion/README.md) y generar su metadata con la skill.
 3. Armar el pipeline (paso 3), hacer la primera corrida y revisar `log.RUN_STEP`.
 4. Definir los objetos gold que necesita el modelo semántico y documentarlo con `documentar-modelo-semantico`.
 5. Después, si hace falta: borrado lógico de filas eliminadas en el origen, SCD tipo 2 en dimensiones y despliegue a producción con deployment pipelines.

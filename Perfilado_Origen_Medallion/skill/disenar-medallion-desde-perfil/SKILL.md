@@ -29,7 +29,7 @@ Entrada: `perfil.json` (o `resumen_perfil.md`) de `Files/perfil/<origen>/<corrid
    - Clave, `SILVER_MODE`, `LOAD_TYPE`, watermark y `ORDER_COLUMN`.
    - Columnas: nombre snake_case (`columna_silver_sugerida` como punto de partida), tipo, transformación, `IS_PII`.
    - Reglas de calidad: entre 1 y 4 por tabla, elegidas por el perfil (no una por columna).
-   - Baja lógica: si hay `candidata_baja_logica`, proponé el `SOURCE_FILTER` o una columna en silver y preguntá cuál prefiere el negocio.
+   - Baja lógica: si hay `candidata_baja_logica`, recomendá `DELETE_MODE = 'FLAG'` con esa columna en silver (o `SOURCE_FILTER` si el negocio confirma que nunca se anula después) y preguntá. Sin columna de baja y con carga `FULL`, ofrecé `DELETE_MODE = 'ABSENT'`. Ver [reglas](reglas_perfil_a_metadata.md).
 3. **Gold**: modelo estrella. Una dimensión por tabla `dimension`, un hecho por proceso de negocio (`hecho`, `hecho_cabecera` + su detalle). Para cada hecho declarás la **granularidad** ("una fila por línea de venta") y su clave. Relaciones `declarada_con_huerfanos` o con `filas_huerfanas > 0`: `LEFT JOIN` en el hecho y miembro desconocido en la dimensión (ver reglas). Sin PII en gold.
 4. Entregá **dos archivos**:
    - `diseno_<origen>.md` con [`plantillas/diseno_medallion.md`](plantillas/diseno_medallion.md): decisiones con evidencia, diagrama Mermaid del modelo estrella, PII y `[dato a confirmar]`.

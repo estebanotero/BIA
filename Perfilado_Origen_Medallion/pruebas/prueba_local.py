@@ -144,14 +144,15 @@ def c(src, dst, typ, tr=None, pii=0):
     return {"source_column": src, "target_column": dst, "target_type": typ, "transform_expr": tr, "is_pii": pii}
 cfg = {"run_id": "val", "load_group": "default", "entities": [
     {"entity_code": "erp_ventas", "bronze_table": "bronze.erp_ventas", "silver_table": "silver.ventas", "silver_mode": "MERGE",
-     "primary_key": "venta_id", "order_column": None,
+     "primary_key": "venta_id", "order_column": None, "delete_mode": "FLAG", "delete_flag_expr": "cantidad < 0",
      "columns": [c("VentaID", "venta_id", "int"), c("Fecha", "fecha", "date", "to_date(trim(`Fecha`), 'd/M/yyyy')"),
                  c("ClienteID", "cliente_id", "int"), c("Cantidad", "cantidad", "int"),
                  c("Importe", "importe", "decimal(18,2)", "replace(replace(trim(`Importe`), '.', ''), ',', '.')")],
      "dq_rules": [{"rule_name": "venta_id_no_nulo", "rule_expr": "venta_id IS NOT NULL", "action": "FAIL"},
                   {"rule_name": "cantidad_positiva", "rule_expr": "cantidad > 0", "action": "FAIL"}]},
-    {"entity_code": "erp_clientes", "bronze_table": "bronze.erp_clientes", "silver_table": "silver.clientes", "silver_mode": "MERGE",
-     "primary_key": "cliente_id", "order_column": "fecha_modificacion",
+    {"entity_code": "erp_clientes", "bronze_table": "bronze.erp_clientes", "silver_table": "silver.clientes", "silver_mode": "SCD2",
+     "primary_key": "cliente_id", "order_column": "fecha_modificacion", "scd2_columns": "email,segmento",
+     "delete_mode": "FLAG", "delete_flag_expr": "anulado = true",
      "columns": [c("ClienteID", "cliente_id", "int"), c("Email", "email", "string", "lower(trim(Email))", 0),
                  c("CUIT", "cuit", "string", None, 1)], "dq_rules": []}],
     "gold_objects": [{"gold_code": "dim_cliente", "target_table": "gold.dim_cliente", "load_mode": "OVERWRITE",
@@ -167,4 +168,7 @@ ok(hay("ADVERTENCIA", "erp_clientes", "email: el perfil la marcó como PII"), "E
 ok(hay("ADVERTENCIA", "dim_cliente", "cuit"), "gold usa una columna PII")
 ok(hay("INFO", "dim_cliente", "No se compila todavía"), "gold sin silver: queda pendiente")
 ok(not any(x["severidad"] != "INFO" and "fecha" in x["detalle"] for x in h), "la fecha convierte sin pérdidas")
+ok(hay("BLOQUEANTE", "erp_clientes", "['segmento']"), "SCD2_COLUMNS con una columna que no está en silver")
+ok(hay("BLOQUEANTE", "erp_clientes", "DELETE_FLAG_EXPR no corre"), "DELETE_FLAG_EXPR sobre una columna inexistente")
+ok(hay("INFO", "erp_ventas", "ya vienen dadas de baja (cantidad < 0)"), "DELETE_FLAG_EXPR válida: cuenta las bajas de la copia")
 print("\nTodas las pruebas pasaron.")

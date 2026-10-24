@@ -30,6 +30,7 @@ Entrada: `meta.GOLD_OBJECT` (el `SELECT` de cada objeto gold), `meta.ENTITY`, el
 1. **Cuadre (`CUADRE`).** Por cada hecho de gold, un `COMPARA` contra su fuente en silver, por mes, con `COUNT(*)` y la suma de la métrica principal.
    - Si gold filtra o agrega a propósito, aplicá el mismo filtro en `SQL_A`, o explicá la diferencia esperada con una tolerancia.
    - Si gold convierte moneda, compará la columna original (`importe_neto`), no la convertida.
+   - Si la entidad tiene `DELETE_MODE` (`FLAG` o `ABSENT`), silver guarda las bajas y gold no: filtrá `NOT coalesce(_is_deleted, false)` del lado silver. Si es `SCD2`, silver tiene varias filas por clave: contá solo `_is_current` (o la última versión), nunca la tabla entera.
    - Bronze → silver: claves que llegaron y no están en silver (`LEFT ANTI JOIN`). Ojo: bronze es historia y puede repetir claves (usá `DISTINCT`); las filas rechazadas por reglas `DROP` faltan a propósito.
 2. **Integridad (`INTEGRIDAD`).** Por cada relación hecho → dimensión que use el modelo semántico: `COUNT(*)` con `LEFT ANTI JOIN`, máximo 0. Claves duplicadas en una dimensión: `SELECT COUNT(*) FROM (SELECT clave FROM dim GROUP BY clave HAVING COUNT(*) > 1)`, máximo 0.
 3. **Frescura (`FRESCURA`).** Horas desde el `MAX` de la fecha de negocio de cada hecho. El máximo depende de la frecuencia del origen y los días sin actividad `[dato a confirmar]`.

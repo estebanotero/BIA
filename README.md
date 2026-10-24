@@ -20,7 +20,7 @@ El patrón es el mismo en todos: **un notebook deja los datos listos, Claude tra
 | Caso | Para qué | Prefijo | Skill de Claude |
 |---|---|---|---|
 | [Perfilar un origen](Perfilado_Origen_Medallion/README.md) | Conocer el origen con datos (claves, tipos reales, nulos, relaciones, PII) y convertir ese perfil en el diseño de silver y gold y en la metadata del pipeline | `NB_PRF_` | `disenar-medallion-desde-perfil` |
-| [Pipeline metadata-driven medallion](Pipeline_Metadata_Medallion/README.md) | Cargar bronze, silver y gold con un solo pipeline y cuatro notebooks, según una base de control en SQL | `NB_MDP_` | `metadata-medallion` |
+| [Pipeline metadata-driven medallion](Pipeline_Metadata_Medallion/README.md) | Cargar bronze, silver y gold con un solo pipeline y cuatro notebooks, según una base de control en SQL. Incluye historia (SCD tipo 2) y bajas del origen | `NB_MDP_` | `metadata-medallion` |
 | [Calidad y reconciliación](Calidad_Reconciliacion/README.md) | Controlar gold después de cada carga: cuadre entre capas por período, hechos sin dimensión, frescura y reglas de negocio. Si una regla grave falla, el pipeline frena antes de refrescar el modelo | `NB_CAL_` | `proponer-reglas-calidad` |
 
 ### Consumo: modelo semántico y agente
@@ -36,7 +36,7 @@ El patrón es el mismo en todos: **un notebook deja los datos listos, Claude tra
 | Documento | Qué tiene |
 |---|---|
 | [Convenciones](docs/convenciones.md) | Estructura de carpetas, nombres, rutas del lakehouse, una sola base de control, dónde van los artefactos de cada implementación y los desvíos corregidos |
-| [Frameworks propuestos](docs/frameworks_propuestos.md) | Lo que falta para llevar esto a producción (SCD2, catálogo, costos), priorizado. CI/CD, monitoreo, seguridad y calidad ya están construidos |
+| [Frameworks propuestos](docs/frameworks_propuestos.md) | Lo que falta para llevar esto a producción (catálogo, costos), priorizado. CI/CD, monitoreo, seguridad, calidad e historia con bajas ya están construidos |
 
 ## Cómo se conectan los casos
 
@@ -123,7 +123,7 @@ El inventario es independiente: se puede correr en cualquier momento para tener 
 |---|---|---|
 | Inventario_Workspace | — | No: la versión v2 y el stored procedure sin ejecutar [dato a confirmar] |
 | Perfilado_Origen_Medallion | Sí, `pruebas/prueba_local.py` (Spark 3.5.3 + Delta 3.2.1) | No |
-| Pipeline_Metadata_Medallion | Sí, notebooks con `pruebas/prueba_local.py` | No: pipeline y stored procedures sin ejecutar |
+| Pipeline_Metadata_Medallion | Sí, notebooks con `pruebas/prueba_local.py`; SCD2 y bajas con `pruebas/prueba_scd2_bajas.py` | No: pipeline y stored procedures sin ejecutar |
 | Calidad_Reconciliacion | Sí, lógica del notebook y reglas de ejemplo en Spark 3.5.3 | No: T-SQL y actividades del pipeline sin ejecutar |
 | Documentar_Modelo_Semantico | — | No |
 | Performance_Modelo_Semantico | Sí, lógica de los notebooks | No |

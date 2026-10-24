@@ -7,6 +7,7 @@ Qué prueba (con datos armados a mano, una situación por regla):
   2. Inventario: items borrados en la ventana e inventario sin correr.
   3. Agente: evaluación que no aprueba (production = ALTA) y agente sin evaluar.
   4. Performance: regresión en la última comparación de un modelo.
+     Calidad: reglas que fallan o no se pudieron ejecutar (dq.v_ultimo_resultado).
   5. evaluar(): orígenes evaluados según las fuentes que hay, orden por severidad,
      claves únicas, y una plataforma sana sin alertas.
   6. El parte que lee la skill y que el notebook tenga la celda de parámetros marcada.
@@ -175,10 +176,26 @@ assert [x["OBJETO"] for x in a] == ["Stock"] and "q7 (resultado_distinto)" in a[
 ok("solo cuenta la última comparación de cada modelo")
 
 # ---------------------------------------------------------------------------
+print("4b. Calidad (dq.v_ultimo_resultado)")
+cal = pd.DataFrame([
+    {"REGLA_CODE": "cuadre_ventas", "CATEGORIA": "CUADRE", "SEVERIDAD": "ERROR", "ESTADO": "FALLA", "DETALLE": "mes=2026-10: filas 300 vs 290", "DUENO": "Ventas"},
+    {"REGLA_CODE": "frescura_ventas", "CATEGORIA": "FRESCURA", "SEVERIDAD": "WARN", "ESTADO": "FALLA", "DETALLE": "horas = 60", "DUENO": None},
+    {"REGLA_CODE": "ventas_sin_cliente", "CATEGORIA": "INTEGRIDAD", "SEVERIDAD": "ERROR", "ESTADO": "ERROR_EJECUCION", "DETALLE": "TABLE_OR_VIEW_NOT_FOUND", "DUENO": None},
+    {"REGLA_CODE": "ventas_sin_producto", "CATEGORIA": "INTEGRIDAD", "SEVERIDAD": "ERROR", "ESTADO": "OK", "DETALLE": None, "DUENO": None},
+])
+a, o = evaluar({"calidad": cal}, AHORA)
+por = {(x["CODIGO"], x["OBJETO"]): x for x in a}
+assert o == ["CAL"] and len(a) == 3
+assert por[("CAL_REGLA_FALLA", "cuadre_ventas")]["SEVERIDAD"] == "ALTA" and "Avisar a: Ventas" in por[("CAL_REGLA_FALLA", "cuadre_ventas")]["MENSAJE"]
+assert por[("CAL_REGLA_FALLA", "frescura_ventas")]["SEVERIDAD"] == "MEDIA"
+assert por[("CAL_REGLA_ERROR_EJECUCION", "ventas_sin_cliente")]["SEVERIDAD"] == "MEDIA"
+ok("regla ERROR que falla = ALTA; WARN o error de ejecución = MEDIA; las OK no alertan")
+
+# ---------------------------------------------------------------------------
 print("5. evaluar() con todas las fuentes")
-todas = {**mdp, "inventario": inv, "eval_agente": ev, "perf_comparacion": comp}
+todas = {**mdp, "inventario": inv, "eval_agente": ev, "perf_comparacion": comp, "calidad": cal}
 alertas, origenes = evaluar(todas, AHORA)
-assert origenes == ["MDP", "INV", "AGT", "PERF"]
+assert origenes == ["MDP", "INV", "AGT", "PERF", "CAL"]
 sev = [x["SEVERIDAD"] for x in alertas]
 assert sev == sorted(sev, key=["ALTA", "MEDIA", "BAJA"].index)
 assert len({x["CLAVE"] for x in alertas}) == len(alertas)

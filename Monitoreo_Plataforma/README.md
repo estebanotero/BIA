@@ -22,6 +22,7 @@ flowchart LR
         SLA[(mon.SLA_CARGA)]
         V[[mon.v_corridas · v_pasos<br/>v_frescura_entidad · v_inventario]]
         AL[(mon.ALERTA)]
+        DQ[(dq.v_ultimo_resultado)]
     end
     subgraph LH[LH_MEDALLION]
         EV[(agente_ctl.eval_historial)]
@@ -41,6 +42,7 @@ flowchart LR
     SLA --> NB
     EV --> NB
     PF --> NB
+    DQ --> NB
     PL --> NB
     NB -->|STG_ALERTA + usp_SYNC_ALERTAS| AL
     NB --> PT
@@ -74,6 +76,8 @@ Están en la celda `# --- funciones` del notebook. Los umbrales se cambian con e
 | `AGT_NO_APRUEBA` | Agente | ALTA en `production`, MEDIA en `sandbox` | La última evaluación de un agente no aprueba | Los umbrales de `NB_AGT_03` |
 | `AGT_SIN_EVALUAR` | Agente | BAJA | La última evaluación es vieja | `dias_sin_evaluar_agente` = 7 |
 | `PERF_REGRESION` | Performance | MEDIA | La última comparación de un modelo tiene consultas en `regresion` o `resultado_distinto` | Los umbrales de `NB_PERF_03` |
+| `CAL_REGLA_FALLA` | Calidad | ALTA si la regla es `ERROR`, MEDIA si es `WARN` | El último resultado de una regla de `dq.REGLA` es `FALLA` | Las tolerancias de cada regla ([Calidad_Reconciliacion](../Calidad_Reconciliacion/README.md)) |
+| `CAL_REGLA_ERROR_EJECUCION` | Calidad | MEDIA | La regla no se pudo ejecutar (tabla que no existe, SQL roto) | — |
 
 Los umbrales de volumen y de entidad sin datos son orientativos: conviene ajustarlos después de dos o tres semanas de historia real [dato a confirmar].
 

@@ -17,6 +17,7 @@ para que puedan entenderse, ejecutarse y mantenerse.
 
 - [Inventario de items de un workspace de Microsoft Fabric](Inventario_Workspace/README.md): sincronización del inventario con una SQL database, usando staging y `MERGE` para conservar IDs y registrar bajas lógicas.
 - [Documentar un modelo semántico de Fabric con Claude](Documentar_Modelo_Semantico/README.md): notebooks que extraen la estructura y una muestra del modelo, una skill para que Claude redacte el diccionario de datos, y la carga revisada de las descripciones en el modelo.
+- [Pipeline metadata-driven medallion en Fabric, con Claude](Pipeline_Metadata_Medallion/README.md): un pipeline y cuatro notebooks cargan bronze, silver y gold según una base de control en SQL; una skill para que Claude genere la metadata de cada origen y diagnostique las corridas.
 
 ## Cómo usar este repositorio
 
@@ -35,16 +36,32 @@ BIA/
 │   ├── NB_Workspace_inventory_v2.ipynb
 │   └── sql/
 │       └── 01_ddl_domain_objects.sql
-└── Documentar_Modelo_Semantico/
+├── Documentar_Modelo_Semantico/
+│   ├── README.md
+│   ├── notebooks/
+│   │   ├── NB_DOC_01_extraer_modelo.ipynb
+│   │   ├── NB_DOC_02_redactar_con_claude.ipynb
+│   │   └── NB_DOC_03_cargar_y_publicar.ipynb
+│   └── skill/
+│       └── documentar-modelo-semantico/
+│           ├── SKILL.md
+│           └── plantillas/
+└── Pipeline_Metadata_Medallion/
     ├── README.md
+    ├── sql/
+    │   ├── 01_ddl_control.sql
+    │   └── 02_ejemplo_metadata.sql
     ├── notebooks/
-    │   ├── NB_DOC_01_extraer_modelo.ipynb
-    │   ├── NB_DOC_02_redactar_con_claude.ipynb
-    │   └── NB_DOC_03_cargar_y_publicar.ipynb
-    └── skill/
-        └── documentar-modelo-semantico/
-            ├── SKILL.md
-            └── plantillas/
+    │   ├── NB_MDP_00_orquestador.ipynb
+    │   ├── NB_MDP_10_bronze.ipynb
+    │   ├── NB_MDP_20_silver.ipynb
+    │   └── NB_MDP_30_gold.ipynb
+    ├── skill/
+    │   └── metadata-medallion/
+    │       ├── SKILL.md
+    │       └── plantillas/
+    └── pruebas/
+        └── prueba_local.py
 ```
 
 Cada solución se organiza en una carpeta propia. Cuando sea útil, incluirá:

@@ -50,3 +50,6 @@ jobs:
       - name: Monitoreo_Plataforma
         working-directory: Monitoreo_Plataforma/pruebas
         run: python prueba_local.py
+      - name: Seguridad_Acceso_Datos
+        working-directory: Seguridad_Acceso_Datos/pruebas
+        run: python prueba_local.py

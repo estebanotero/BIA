@@ -1,0 +1,10 @@
+grupo,tipo_permiso,alcance,ve_pii,aprobada,notas
+grp-fabric-plataforma,WORKSPACE,Admin,si,no,Equipo de plataforma: administra el workspace. Dos o tres personas
+grp-fabric-ingenieria,WORKSPACE,Contributor,si,no,Ingeniería de datos: edita notebooks y pipelines en DES. En PRD solo despliega el CI/CD
+grp-fabric-ingenieria,LECTURA,bronze,si,no,Necesita bronze para reprocesar y diagnosticar
+grp-fabric-ingenieria,LECTURA,silver,si,no,
+grp-fabric-ingenieria,LECTURA,gold,si,no,
+grp-fabric-analistas,LECTURA,silver,no,no,Analistas: silver y gold sin columnas PII
+grp-fabric-analistas,LECTURA,gold,no,no,
+grp-negocio-ventas-norte,LECTURA,agente,no,no,Negocio: solo las vistas del agente (con RLS por zona) y el modelo semántico por permiso del item
+grp-negocio-ventas-sur,LECTURA,agente,no,no,

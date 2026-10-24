@@ -12,6 +12,7 @@ El patrón es el mismo en todos: **un notebook deja los datos listos, Claude tra
 |---|---|---|---|
 | [Inventario de un workspace](Inventario_Workspace/README.md) | Sincronizar los items de uno o más workspaces con la base de control (staging + `MERGE`, IDs estables y bajas lógicas) | `NB_INV_` | — |
 | [Desplegar entre ambientes (CI/CD)](Despliegue_Entre_Ambientes/README.md) | Llevar lo que se arma en DES a TEST y PRD: repo por implementación, `parameter.yml`, migraciones de la base de control y GitHub Actions con fabric-cicd y aprobación para PRD | — | `revisar-despliegue-fabric` |
+| [Monitorear la plataforma](Monitoreo_Plataforma/README.md) | Juntar el estado de todos los casos en el esquema `mon`, abrir y cerrar alertas con reglas fijas (fallas, SLA, calidad, volumen, agente, performance), avisar por un solo canal y armar el parte diario | `NB_MON_` | `diagnosticar-plataforma` |
 
 ### Datos: del origen a gold
 
@@ -33,7 +34,7 @@ El patrón es el mismo en todos: **un notebook deja los datos listos, Claude tra
 | Documento | Qué tiene |
 |---|---|
 | [Convenciones](docs/convenciones.md) | Estructura de carpetas, nombres, rutas del lakehouse, una sola base de control, dónde van los artefactos de cada implementación y los desvíos corregidos |
-| [Frameworks propuestos](docs/frameworks_propuestos.md) | Lo que falta para llevar esto a producción (monitoreo, seguridad, calidad, SCD2, catálogo, costos), priorizado. CI/CD ya está construido |
+| [Frameworks propuestos](docs/frameworks_propuestos.md) | Lo que falta para llevar esto a producción (seguridad, calidad, SCD2, catálogo, costos), priorizado. CI/CD y monitoreo ya están construidos |
 
 ## Cómo se conectan los casos
 
@@ -44,6 +45,7 @@ flowchart LR
     subgraph CTRL[SQL database de control]
         META[(meta.* · log.*)]
         CFG[(config.DOMAIN_OBJECTS)]
+        MON[(mon.ALERTA)]
     end
 
     subgraph LH[LH_MEDALLION]
@@ -72,6 +74,8 @@ flowchart LR
     SM --> FDA
     DIC -.->|instrucciones| FDA
     FDA -->|8 · MCP| CL
+    MONI[Monitoreo_Plataforma] -.->|lee log, config,<br/>agente_ctl, perf| MON
+    MON -.->|parte diario| CL
 ```
 
 ### Secuencia recomendada para un origen nuevo
@@ -88,7 +92,7 @@ flowchart LR
 | 7 | Performance del modelo (reusa `modelo.json`) | PR con cambios TMDL e `informe_perf.md` | El modelo en producción |
 | 8 | Agente de datos sobre `agente.*` y el modelo | Agente publicado y evaluado | Negocio, Claude vía MCP |
 
-El inventario es independiente: se puede correr en cualquier momento para tener la lista de items de la plataforma. El [despliegue entre ambientes](Despliegue_Entre_Ambientes/README.md) acompaña todos los pasos: lo que se arma en DES llega a TEST y PRD por PR, y los artefactos de cada paso (`alta_<origen>.sql`, diccionarios, instrucciones de agentes) viven en el repo de la implementación.
+El inventario es independiente: se puede correr en cualquier momento para tener la lista de items de la plataforma. El [monitoreo](Monitoreo_Plataforma/README.md) se prende después del paso 5, cuando hay corridas reales, y suma reglas a medida que se agregan el agente y las mediciones de performance. El [despliegue entre ambientes](Despliegue_Entre_Ambientes/README.md) acompaña todos los pasos: lo que se arma en DES llega a TEST y PRD por PR, y los artefactos de cada paso (`alta_<origen>.sql`, diccionarios, instrucciones de agentes) viven en el repo de la implementación.
 
 ### Qué se comparte entre casos
 
@@ -100,7 +104,9 @@ El inventario es independiente: se puede correr en cualquier momento para tener 
 | `gold.*` | Pipeline medallion | Modelo semántico, vistas `agente.*` |
 | `Files/doc_modelos/<modelo>/modelo.json` | `NB_DOC_01` | Skill de documentación, Performance |
 | [`Comun/patrones_sensibles.json`](Comun/README.md) (nombres de columna PII) | Una persona, por PR | `NB_DOC_01`, `NB_PRF_01` |
-| Base de control: `config.*`, `meta.*`, `log.*` | Inventario, Pipeline medallion, Perfilado | Pipeline medallion, `NB_PRF_03` |
+| Base de control: `config.*`, `meta.*`, `log.*` | Inventario, Pipeline medallion, Perfilado | Pipeline medallion, `NB_PRF_03`, Monitoreo |
+| `mon.*` (SLA y alertas) | Monitoreo (`NB_MON_01`) | Reporte operativo, skill `diagnosticar-plataforma` |
+| `agente_ctl.eval_historial`, `perf.comparacion` | Agente, Performance | Monitoreo |
 
 ## Estado de prueba
 
@@ -113,12 +119,13 @@ El inventario es independiente: se puede correr en cualquier momento para tener 
 | Performance_Modelo_Semantico | Sí, lógica de los notebooks | No |
 | Agente_Datos_Fabric | Sí, reglas del banco y MCP contra un agente simulado | No: SDK y vistas sin ejecutar |
 | Despliegue_Entre_Ambientes | Sí, scripts y workflows con el validador real de fabric-cicd 1.4.0 | No: sin despliegue real, login OIDC ni conexión a la base |
+| Monitoreo_Plataforma | Sí, las reglas del notebook con situaciones armadas | No: script SQL, JDBC y avisos sin ejecutar |
 
 Las pruebas locales corren en cada PR con [`.github/workflows/pruebas.yml`](.github/workflows/pruebas.yml). Probá siempre primero en un workspace de desarrollo.
 
 ## Instalar las skills
 
-Cada skill está en `<Caso>/skill/<nombre>/`. Para Claude Code, copiá la carpeta a `.claude/skills/` del proyecto donde trabajás; en claude.ai, subila como skill. Las seis skills de BIA se pueden instalar juntas: cada una dice en su `description` cuándo usarla.
+Cada skill está en `<Caso>/skill/<nombre>/`. Para Claude Code, copiá la carpeta a `.claude/skills/` del proyecto donde trabajás; en claude.ai, subila como skill. Las siete skills de BIA se pueden instalar juntas: cada una dice en su `description` cuándo usarla.
 
 ## Estructura
 
@@ -136,7 +143,8 @@ BIA/
 ├── Documentar_Modelo_Semantico/   notebooks/NB_DOC_01..03 · skill/documentar-modelo-semantico/
 ├── Performance_Modelo_Semantico/  notebooks/NB_PERF_01..03 · skill/optimizar-modelo-semantico/ · ci/ · pruebas/
 ├── Agente_Datos_Fabric/           sql/ · notebooks/NB_AGT_01..03 · mcp/ · skill/agente-datos-fabric/ · pruebas/
-└── Despliegue_Entre_Ambientes/    plantilla_repo/ (workflows, deploy/, parameter.yml) · skill/revisar-despliegue-fabric/ · pruebas/
+├── Despliegue_Entre_Ambientes/    plantilla_repo/ (workflows, deploy/, parameter.yml) · skill/revisar-despliegue-fabric/ · pruebas/
+└── Monitoreo_Plataforma/          sql/ · notebooks/NB_MON_01 · skill/diagnosticar-plataforma/ · pruebas/
 ```
 
 La estructura de cada carpeta y las convenciones de nombres están en [docs/convenciones.md](docs/convenciones.md).

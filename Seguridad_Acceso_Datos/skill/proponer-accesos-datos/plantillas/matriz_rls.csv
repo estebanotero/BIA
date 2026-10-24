@@ -1,0 +1,5 @@
+grupo,tabla_sql,tabla_modelo,columna,valores,aprobada
+grp-negocio-ventas-norte,gold.fact_ventas,Ventas,zona,Norte,no
+grp-negocio-ventas-sur,gold.fact_ventas,Ventas,zona,"Sur,Cuyo",no
+grp-fabric-ingenieria,gold.fact_ventas,,zona,*,no
+grp-fabric-analistas,gold.fact_ventas,,zona,*,no

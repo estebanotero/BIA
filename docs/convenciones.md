@@ -26,7 +26,7 @@ Revisión del 2026-10-24 sobre `main` (después del merge del PR #5). Correccion
 | Qué | Convención | Ejemplos |
 |---|---|---|
 | Carpeta del caso | `Palabra_Palabra` en español, sin tildes | `Pipeline_Metadata_Medallion` |
-| Prefijo de notebooks | Tres o cuatro letras únicas por caso | `DOC`, `PERF`, `MDP`, `PRF`, `AGT`, `INV`, `MON` |
+| Prefijo de notebooks | Tres o cuatro letras únicas por caso | `DOC`, `PERF`, `MDP`, `PRF`, `AGT`, `INV`, `MON`, `SEG` |
 | Notebook | `NB_<PREFIJO>_<NN>_<verbo_objeto>` | `NB_PRF_01_perfilar` |
 | Numeración | `01`, `02`, `03` en el orden de uso. `MDP` usa `00/10/20/30` a propósito: `00` es el orquestador y las decenas son las capas | `NB_MDP_20_silver` |
 | Skill | `kebab-case`, verbo + objeto, en español | `optimizar-modelo-semantico` |
@@ -44,6 +44,7 @@ Revisión del 2026-10-24 sobre `main` (después del merge del PR #5). Correccion
 | Archivos de trabajo | `Files/<area>/<objeto>/...` en el lakehouse por defecto del notebook | `Files/landing/<entidad>/<run_id>/`, `Files/perfil/<origen>/`, `Files/doc_modelos/<modelo>/`, `Files/doc_modelos/<modelo>/perf/<corrida>/`, `Files/agente/<AGENTE>/` |
 | Configuración y estado | **Una** SQL database de control: `config` (inventario), `meta` (metadata del pipeline), `log` (corridas), `mon` (SLA y alertas) | Inventario, MDP, PRF, MON |
 | Listas compartidas | [`Comun/`](../Comun/README.md) en el repo, `Files/comun/` en el lakehouse | DOC, PRF |
+| Matriz de accesos | `seguridad/` del repo de la implementación, aprobada por PR. Los scripts generados, en `Files/seguridad/scripts/` | SEG |
 | Secretos | Azure Key Vault, leídos con `notebookutils.credentials.getSecret` | DOC (opción B) |
 
 ### 1.4. Reglas que comparten todos los casos

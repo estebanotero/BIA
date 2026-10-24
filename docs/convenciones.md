@@ -33,6 +33,7 @@ Revisión del 2026-10-24 sobre `main` (después del merge del PR #5). Correccion
 | Items de Fabric | `PL_` pipeline, `LH_` lakehouse, `DB_` SQL database, `AG_` data agent | `PL_MDP_MEDALLION`, `LH_MEDALLION`, `DB_MDP_CONTROL`, `AG_VENTAS` |
 | Objetos SQL de control | Esquema por función, tablas en `MAYÚSCULAS`, SP `usp_` | `meta.ENTITY`, `log.usp_END_RUN` |
 | Tablas Delta | Esquema por caso, tabla en `minúsculas` | `perfil.columna`, `agente.eval_historial` |
+| Columnas técnicas en bronze, silver y gold | Empiezan con `_`. Los datos de negocio nunca empiezan con `_` | `_run_id`, `_ingested_at`, `_silver_updated_at`, `_is_deleted`, `_valid_from`, `_valid_to`, `_is_current` |
 
 ### 1.3. Dónde vive cada cosa
 
@@ -116,5 +117,5 @@ Ordenados por impacto.
 - **Desvío 1:** las tablas pasan a `agente_ctl.banco_preguntas` y `agente_ctl.eval_historial`. Si ya existían en `agente`, copialas una vez (`CREATE TABLE agente_ctl.x AS SELECT * FROM agente.x`) y borrá las viejas después de revisar.
 - **Desvío 2:** `doc.diccionario` y `perf.*` (`vertipaq_columnas`, `vertipaq_tablas`, `bpa`, `mediciones`, `comparacion`). Los notebooks crean el esquema si no existe. Si ya había tablas `doc_diccionario` o `perf_*` en `dbo`, quedan como historia: copialas al esquema nuevo si las querés seguir usando.
 - **Desvío 6:** el notebook pasó a `Inventario_Workspace/notebooks/NB_INV_01_sincronizar_items.ipynb`. No sumé prueba local: la lógica importante está en el stored procedure (T-SQL), que no se puede probar sin un SQL Server; la guardia del notebook es una comparación de una línea.
-- **Desvío 10:** [`.github/workflows/pruebas.yml`](../.github/workflows/pruebas.yml) corre las pruebas locales de cada caso en cada PR (seis desde que se sumó Monitoreo). La de `Pipeline_Metadata_Medallion` imprime los resultados pero no tiene `assert`: en CI solo detecta que algo se rompa con error. Sumarle aserciones es una mejora pendiente.
+- **Desvío 10:** [`.github/workflows/pruebas.yml`](../.github/workflows/pruebas.yml) corre las pruebas locales de cada caso en cada PR (seis desde que se sumó Monitoreo). El workflow corre todos los `pruebas/prueba_*.py` de cada caso. En `Pipeline_Metadata_Medallion`, `prueba_local.py` imprime los resultados pero no tiene `assert` (en CI solo detecta que algo se rompa con error); `prueba_scd2_bajas.py`, que cubre historia y bajas, sí tiene chequeos. Sumarle aserciones a la primera es una mejora pendiente.
 - **Desvío 7:** [`Comun/patrones_sensibles.json`](../Comun/README.md). Si no está subido a `Files/comun/`, cada notebook usa su lista por defecto (hoy idénticas).

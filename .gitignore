@@ -1,5 +1,5 @@
 __pycache__/
 *.pyc
-**/pruebas/work_prueba_local/
+**/pruebas/work_*/
 .venv/
 venv/

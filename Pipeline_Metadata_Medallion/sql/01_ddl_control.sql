@@ -59,13 +59,54 @@ CREATE TABLE meta.ENTITY (
     BRONZE_TABLE       NVARCHAR(256)  NOT NULL,  -- ej. bronze.erp_clientes
     SILVER_TABLE       NVARCHAR(256)  NOT NULL,  -- ej. silver.clientes
     SILVER_MODE        VARCHAR(20)    NOT NULL CONSTRAINT DF_ENTITY_SILVER_MODE DEFAULT ('MERGE')
-        CONSTRAINT CK_ENTITY_SILVER_MODE CHECK (SILVER_MODE IN ('MERGE', 'OVERWRITE', 'APPEND')),
+        CONSTRAINT CK_ENTITY_SILVER_MODE CHECK (SILVER_MODE IN ('MERGE', 'OVERWRITE', 'APPEND', 'SCD2')),
+        -- SCD2: historia con _valid_from, _valid_to e _is_current por clave
+    SCD2_COLUMNS       NVARCHAR(1000) NULL,      -- columnas de silver que abren versión nueva; NULL = todas menos la clave y ORDER_COLUMN
+    DELETE_MODE        VARCHAR(10)    NOT NULL CONSTRAINT DF_ENTITY_DELETE_MODE DEFAULT ('NONE')
+        CONSTRAINT CK_ENTITY_DELETE_MODE CHECK (DELETE_MODE IN ('NONE', 'FLAG', 'ABSENT')),
+        -- FLAG: DELETE_FLAG_EXPR dice que la fila está dada de baja en el origen
+        -- ABSENT: extracción completa; lo que estaba vivo y no vino es baja
+    DELETE_FLAG_EXPR   NVARCHAR(1000) NULL,      -- Spark SQL sobre columnas de silver, ej. anulada = true
+    DELETE_MAX_PCT     DECIMAL(5,2)   NOT NULL CONSTRAINT DF_ENTITY_DELETE_MAX_PCT DEFAULT (10)
+        CONSTRAINT CK_ENTITY_DELETE_MAX_PCT CHECK (DELETE_MAX_PCT BETWEEN 0 AND 100),
+        -- ABSENT: si falta más de este % de las claves vivas, silver falla en vez de marcar bajas
     LOAD_GROUP         VARCHAR(50)    NOT NULL CONSTRAINT DF_ENTITY_GROUP DEFAULT ('default'),
     IS_ACTIVE          BIT            NOT NULL CONSTRAINT DF_ENTITY_ACTIVE DEFAULT (1),
     CREATED_AT         DATETIME2(0)   NOT NULL CONSTRAINT DF_ENTITY_CREATED DEFAULT (SYSUTCDATETIME()),
     UPDATED_AT         DATETIME2(0)   NOT NULL CONSTRAINT DF_ENTITY_UPDATED DEFAULT (SYSUTCDATETIME()),
-    CONSTRAINT CK_ENTITY_MERGE_PK CHECK (SILVER_MODE <> 'MERGE' OR PRIMARY_KEY IS NOT NULL)
+    CONSTRAINT CK_ENTITY_MERGE_PK CHECK (SILVER_MODE NOT IN ('MERGE', 'SCD2') OR PRIMARY_KEY IS NOT NULL),
+    CONSTRAINT CK_ENTITY_DELETE_FLAG CHECK (DELETE_MODE <> 'FLAG' OR DELETE_FLAG_EXPR IS NOT NULL)
 );
+GO
+
+/* Ampliación para SCD2 y bajas (bases creadas antes de esta versión). Agrega columnas
+   con valores por defecto que no cambian el comportamiento (DELETE_MODE = NONE) y amplía
+   los CHECK. No toca datos. Para volver atrás: borrar los CHECK y columnas nuevos. */
+IF COL_LENGTH('meta.ENTITY', 'SCD2_COLUMNS') IS NULL
+    ALTER TABLE meta.ENTITY ADD SCD2_COLUMNS NVARCHAR(1000) NULL;
+IF COL_LENGTH('meta.ENTITY', 'DELETE_MODE') IS NULL
+    ALTER TABLE meta.ENTITY ADD DELETE_MODE VARCHAR(10) NOT NULL CONSTRAINT DF_ENTITY_DELETE_MODE DEFAULT ('NONE');
+IF COL_LENGTH('meta.ENTITY', 'DELETE_FLAG_EXPR') IS NULL
+    ALTER TABLE meta.ENTITY ADD DELETE_FLAG_EXPR NVARCHAR(1000) NULL;
+IF COL_LENGTH('meta.ENTITY', 'DELETE_MAX_PCT') IS NULL
+    ALTER TABLE meta.ENTITY ADD DELETE_MAX_PCT DECIMAL(5,2) NOT NULL CONSTRAINT DF_ENTITY_DELETE_MAX_PCT DEFAULT (10);
+GO
+IF EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = 'CK_ENTITY_SILVER_MODE' AND definition NOT LIKE '%SCD2%')
+    ALTER TABLE meta.ENTITY DROP CONSTRAINT CK_ENTITY_SILVER_MODE;
+IF OBJECT_ID('meta.CK_ENTITY_SILVER_MODE') IS NULL
+    ALTER TABLE meta.ENTITY ADD CONSTRAINT CK_ENTITY_SILVER_MODE
+        CHECK (SILVER_MODE IN ('MERGE', 'OVERWRITE', 'APPEND', 'SCD2'));
+IF EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = 'CK_ENTITY_MERGE_PK' AND definition NOT LIKE '%SCD2%')
+    ALTER TABLE meta.ENTITY DROP CONSTRAINT CK_ENTITY_MERGE_PK;
+IF OBJECT_ID('meta.CK_ENTITY_MERGE_PK') IS NULL
+    ALTER TABLE meta.ENTITY ADD CONSTRAINT CK_ENTITY_MERGE_PK
+        CHECK (SILVER_MODE NOT IN ('MERGE', 'SCD2') OR PRIMARY_KEY IS NOT NULL);
+IF OBJECT_ID('meta.CK_ENTITY_DELETE_MODE') IS NULL
+    ALTER TABLE meta.ENTITY ADD CONSTRAINT CK_ENTITY_DELETE_MODE CHECK (DELETE_MODE IN ('NONE', 'FLAG', 'ABSENT'));
+IF OBJECT_ID('meta.CK_ENTITY_DELETE_MAX_PCT') IS NULL
+    ALTER TABLE meta.ENTITY ADD CONSTRAINT CK_ENTITY_DELETE_MAX_PCT CHECK (DELETE_MAX_PCT BETWEEN 0 AND 100);
+IF OBJECT_ID('meta.CK_ENTITY_DELETE_FLAG') IS NULL
+    ALTER TABLE meta.ENTITY ADD CONSTRAINT CK_ENTITY_DELETE_FLAG CHECK (DELETE_MODE <> 'FLAG' OR DELETE_FLAG_EXPR IS NOT NULL);
 GO
 
 /* Columnas de silver. Si una entidad no tiene filas acá, silver toma todas
@@ -255,6 +296,10 @@ BEGIN
                     e.BRONZE_TABLE     AS bronze_table,
                     e.SILVER_TABLE     AS silver_table,
                     e.SILVER_MODE      AS silver_mode,
+                    e.SCD2_COLUMNS     AS scd2_columns,
+                    e.DELETE_MODE      AS delete_mode,
+                    e.DELETE_FLAG_EXPR AS delete_flag_expr,
+                    e.DELETE_MAX_PCT   AS delete_max_pct,
                     -- si la copia de esta corrida falló, bronze no lee la carpeta (puede estar incompleta)
                     CASE WHEN EXISTS (SELECT 1 FROM log.RUN_STEP r
                                       WHERE r.RUN_ID = @RUN_ID AND r.LAYER = 'copy'
@@ -388,10 +433,25 @@ BEGIN
               THEN 'BRONZE_TABLE fuera del esquema bronze' END),
         (CASE WHEN e.SILVER_TABLE NOT LIKE 'silver.%' AND e.SILVER_TABLE NOT LIKE '%.silver.%'
               THEN 'SILVER_TABLE fuera del esquema silver' END),
-        (CASE WHEN e.SILVER_MODE = 'MERGE' AND EXISTS (SELECT 1 FROM meta.ENTITY_COLUMN c WHERE c.ENTITY_ID = e.ENTITY_ID)
+        (CASE WHEN e.SILVER_MODE IN ('MERGE', 'SCD2') AND EXISTS (SELECT 1 FROM meta.ENTITY_COLUMN c WHERE c.ENTITY_ID = e.ENTITY_ID)
                    AND EXISTS (SELECT TRIM(value) AS k FROM STRING_SPLIT(e.PRIMARY_KEY, ',')
                                EXCEPT SELECT TARGET_COLUMN FROM meta.ENTITY_COLUMN c WHERE c.ENTITY_ID = e.ENTITY_ID)
               THEN 'PRIMARY_KEY tiene columnas que no están en ENTITY_COLUMN' END),
+        (CASE WHEN e.SCD2_COLUMNS IS NOT NULL AND e.SILVER_MODE <> 'SCD2'
+              THEN 'SCD2_COLUMNS solo aplica con SILVER_MODE = SCD2' END),
+        (CASE WHEN e.SILVER_MODE = 'SCD2' AND EXISTS (SELECT 1 FROM meta.ENTITY_COLUMN c WHERE c.ENTITY_ID = e.ENTITY_ID)
+                   AND EXISTS (SELECT TRIM(value) FROM STRING_SPLIT(ISNULL(e.SCD2_COLUMNS, ''), ',') WHERE TRIM(value) <> ''
+                               EXCEPT SELECT TARGET_COLUMN FROM meta.ENTITY_COLUMN c WHERE c.ENTITY_ID = e.ENTITY_ID)
+              THEN 'SCD2_COLUMNS tiene columnas que no están en ENTITY_COLUMN' END),
+        (CASE WHEN e.SILVER_MODE = 'SCD2' AND EXISTS (SELECT 1 FROM meta.ENTITY_COLUMN c
+                                                      WHERE c.ENTITY_ID = e.ENTITY_ID AND c.IS_PII = 1
+                                                        AND (e.SCD2_COLUMNS IS NULL
+                                                             OR c.TARGET_COLUMN IN (SELECT TRIM(value) FROM STRING_SPLIT(e.SCD2_COLUMNS, ','))))
+              THEN 'SCD2 sigue columnas PII (SCD2_COLUMNS vacío las incluye): guardaría la historia de un dato personal' END),
+        (CASE WHEN e.DELETE_MODE <> 'NONE' AND e.SILVER_MODE NOT IN ('MERGE', 'SCD2')
+              THEN 'DELETE_MODE requiere SILVER_MODE MERGE o SCD2' END),
+        (CASE WHEN e.DELETE_MODE = 'ABSENT' AND e.LOAD_TYPE <> 'FULL'
+              THEN 'DELETE_MODE = ABSENT requiere LOAD_TYPE = FULL: en una incremental, lo que no vino no está borrado' END),
         (CASE WHEN EXISTS (SELECT 1 FROM meta.ENTITY e2 WHERE e2.SILVER_TABLE = e.SILVER_TABLE AND e2.ENTITY_ID <> e.ENTITY_ID)
               THEN 'Otra entidad escribe en la misma SILVER_TABLE' END)
     ) x(PROBLEMA)

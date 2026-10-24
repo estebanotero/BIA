@@ -14,7 +14,9 @@ Cómo traducir cada señal de `perfil.json` a una decisión de silver o gold. So
 | `candidata_watermark = 'DATETIME'` (fecha de modificación sin nulos) | `LOAD_TYPE = 'INCREMENTAL'`, `WATERMARK_TYPE = 'DATETIME'`, `ORDER_COLUMN` = esa columna en snake_case | Trae solo lo cambiado |
 | Solo una clave entera creciente (`VentaID`) | `INCREMENTAL` con `WATERMARK_TYPE = 'INT'` **solo si** el negocio confirma que las filas nunca se modifican | Si se modifican, el incremental por ID pierde cambios |
 | Ninguna de las dos | `FULL` | Más caro, no pierde datos |
-| `candidata_baja_logica` (`Anulada`, `Activo`, `Borrado`) | Preguntá: filtrar en origen (`SOURCE_FILTER = 'Anulada = 0'`) o llevar la columna a silver como `boolean` | Filtrar en origen hace que una anulación posterior no llegue nunca a silver con `MERGE` |
+| `candidata_baja_logica` (`Anulada`, `Activo`, `Borrado`) | Recomendá llevar la columna a silver como `boolean` con `DELETE_MODE = 'FLAG'` y `DELETE_FLAG_EXPR` (ej. `anulada = true`); filtrar en origen (`SOURCE_FILTER`) solo si el negocio confirma que una fila nunca se anula después de cargada | Filtrar en origen hace que una anulación posterior no llegue nunca a silver: la fila queda viva. Con `FLAG`, silver la marca `_is_deleted` y gold la saca |
+| Tabla sin baja lógica, con borrado físico en el origen y carga `FULL` | `DELETE_MODE = 'ABSENT'` con `DELETE_MAX_PCT` (10 % por defecto) `[dato a confirmar]` con el dueño | Lo que estaba vivo y no vino en la extracción completa se marca como baja; el freno evita marcar media tabla por una extracción cortada |
+| Dimensión cuyos atributos cambian y los reportes miran el pasado (zona, segmento, vendedor) | `SILVER_MODE = 'SCD2'` con `SCD2_COLUMNS` = solo esos atributos. **Nunca** columnas PII en `SCD2_COLUMNS` | Sin SCD2 gold pierde a qué zona pertenecía el cliente cuando compró |
 
 ## 2. Columnas
 

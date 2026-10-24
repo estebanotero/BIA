@@ -28,9 +28,9 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install pyspark==3.5.3 delta-spark==3.2.1 "pandas<3" setuptools uvicorn -r Agente_Datos_Fabric/mcp/requirements.txt
-      - name: prueba_local.py
+      - name: prueba_*.py
         working-directory: ${{ matrix.caso }}/pruebas
-        run: python prueba_local.py
+        run: for f in prueba_*.py; do echo "== $f"; python "$f" || exit 1; done
 
   sin_spark:
     name: Casos sin Spark

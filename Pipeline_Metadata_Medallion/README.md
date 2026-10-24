@@ -6,12 +6,14 @@
 |---|---|---|
 | [`sql/01_ddl_control.sql`](sql/01_ddl_control.sql) | Esquemas `meta` y `log`, tablas de configuración y de ejecución, y los stored procedures que usa el pipeline | Crea objetos; no borra nada |
 | [`sql/02_ejemplo_metadata.sql`](sql/02_ejemplo_metadata.sql) | Metadata de ejemplo: un ERP en SQL Server y CSV en OneLake, con columnas, reglas y gold | Sí, en `meta.*` |
+| [`sql/03_ejemplo_historia.sql`](sql/03_ejemplo_historia.sql) | Sobre el ejemplo: clientes con historia (SCD2), productos y ventas con bajas del origen, y gold con vigencia ([sección 10](#10-historia-scd-tipo-2-y-bajas-del-origen)) | Sí, en `meta.*` |
 | [`notebooks/NB_MDP_00_orquestador.ipynb`](notebooks/NB_MDP_00_orquestador.ipynb) | Arma un DAG con la metadata y ejecuta los demás notebooks con `runMultiple` | No directamente |
 | [`notebooks/NB_MDP_10_bronze.ipynb`](notebooks/NB_MDP_10_bronze.ipynb) | Una entidad: archivos → tabla bronze (append, con auditoría) | Sí, en bronze |
-| [`notebooks/NB_MDP_20_silver.ipynb`](notebooks/NB_MDP_20_silver.ipynb) | Una entidad: columnas, tipos, calidad, deduplicación y `MERGE` en silver | Sí, en silver |
+| [`notebooks/NB_MDP_20_silver.ipynb`](notebooks/NB_MDP_20_silver.ipynb) | Una entidad: columnas, tipos, calidad, deduplicación y `MERGE` o `SCD2` en silver, con bajas del origen | Sí, en silver |
 | [`notebooks/NB_MDP_30_gold.ipynb`](notebooks/NB_MDP_30_gold.ipynb) | Un objeto gold: `SELECT` → tabla, `MERGE` o materialized lake view | Sí, en gold |
 | [`skill/metadata-medallion/`](skill/metadata-medallion/SKILL.md) | Skill de Claude con plantillas: alta de entidades, objetos gold y diagnóstico | No: genera scripts para revisar |
 | [`pruebas/prueba_local.py`](pruebas/prueba_local.py) | Prueba de los notebooks con Spark y Delta en tu PC, sin Fabric | Solo en una carpeta local |
+| [`pruebas/prueba_scd2_bajas.py`](pruebas/prueba_scd2_bajas.py) | Prueba de SCD2 y bajas en silver y gold, con chequeos | Solo en una carpeta local |
 
 ---
 
@@ -64,7 +66,7 @@ Las capas, como se usan acá:
 |---|---|---|---|
 | Landing (`Files/landing`) | Lo que trajo la copia, tal cual, por corrida | Copy activity, Parquet | Solo bronze |
 | Bronze | Historia de todo lo que llegó, con `_run_id`, `_ingested_at` y archivo de origen | Append | Reprocesos, auditoría |
-| Silver | Una fila por clave, tipada, limpia y validada | `MERGE`, `OVERWRITE` o `APPEND` | Ingeniería, analistas |
+| Silver | Una fila por clave (o una por versión, con `SCD2`), tipada, limpia y validada. Las bajas del origen quedan marcadas, no borradas | `MERGE`, `SCD2`, `OVERWRITE` o `APPEND` | Ingeniería, analistas |
 | Gold | Modelo dimensional (hechos y dimensiones) para el negocio | `OVERWRITE`, `MERGE` o materialized lake view | Modelo semántico, reportes |
 
 ## 2. Qué usa de Fabric, y por qué
@@ -136,7 +138,9 @@ erDiagram
         string PRIMARY_KEY
         string BRONZE_TABLE
         string SILVER_TABLE
-        string SILVER_MODE "MERGE, OVERWRITE, APPEND"
+        string SILVER_MODE "MERGE, SCD2, OVERWRITE, APPEND"
+        string SCD2_COLUMNS "columnas que abren versión"
+        string DELETE_MODE "NONE, FLAG, ABSENT"
         string LOAD_GROUP
     }
     ENTITY_COLUMN {
@@ -191,6 +195,7 @@ erDiagram
 
 1. Abrí la SQL database y corré [`sql/01_ddl_control.sql`](sql/01_ddl_control.sql). Es idempotente.
 2. Cargá tu metadata: adaptá [`sql/02_ejemplo_metadata.sql`](sql/02_ejemplo_metadata.sql) o generala con Claude (sección 7). Al final corre `meta.usp_VALIDATE_METADATA`, que tiene que devolver **cero filas**.
+3. Si una base ya existía de una versión anterior, el mismo script le agrega las columnas de historia y bajas (`SCD2_COLUMNS`, `DELETE_MODE`, ...) con valores que no cambian nada. Para usarlas, ver la [sección 10](#10-historia-scd-tipo-2-y-bajas-del-origen).
 
 ### Paso 2. Lakehouse y notebooks
 
@@ -260,8 +265,10 @@ Claude **no escribe en la base de control ni en el lakehouse**: genera scripts q
 | Cortar la conexión de un origen | Copy `FAILED`, bronze `SKIPPED`, el watermark no cambia, las demás entidades siguen |
 | `layers = silver,gold` y `reprocesar_run_id` con una corrida vieja | Silver se recalcula desde bronze sin volver a copiar |
 | [`pruebas/prueba_local.py`](pruebas/prueba_local.py) | Las cuatro corridas simuladas terminan como dice su encabezado |
+| [`pruebas/prueba_scd2_bajas.py`](pruebas/prueba_scd2_bajas.py) | `Todo OK`: versiones, bajas `FLAG` y `ABSENT`, freno, reproceso fuera de orden, conversión desde `MERGE` y gold sin bajas |
+| Entidad con `DELETE_MODE = 'ABSENT'` y una extracción cortada en DES (filtro que trae la mitad) | Silver `FAILED` con `DELETE_MAX_PCT` en el error y ninguna fila marcada |
 
-**Qué está probado y qué no.** Los notebooks los corrí con [`pruebas/prueba_local.py`](pruebas/prueba_local.py) (Spark 3.5.3 y Delta 3.2.1, la misma línea de versiones que el runtime 1.3 de Fabric), con `notebookutils` simulado. Los casos fueron: carga inicial, incremental por fecha y por archivo, copia fallida, regla `FAIL`, nombres de columna con espacios y PII fuera de los rechazos. **No están probados** en Fabric real el pipeline, los stored procedures (T-SQL escrito para SQL database / Azure SQL, sin ejecutar), el comportamiento real de `runMultiple` cuando un hijo falla por infraestructura ni las materialized lake views. Probalo primero en un workspace de desarrollo.
+**Qué está probado y qué no.** Los notebooks los corrí con [`pruebas/prueba_local.py`](pruebas/prueba_local.py) (Spark 3.5.3 y Delta 3.2.1, la misma línea de versiones que el runtime 1.3 de Fabric), con `notebookutils` simulado. Los casos fueron: carga inicial, incremental por fecha y por archivo, copia fallida, regla `FAIL`, nombres de columna con espacios y PII fuera de los rechazos. SCD2 y bajas, con [`pruebas/prueba_scd2_bajas.py`](pruebas/prueba_scd2_bajas.py) (31 chequeos). **No están probados** en Fabric real el pipeline, los stored procedures (T-SQL escrito para SQL database / Azure SQL, sin ejecutar), el comportamiento real de `runMultiple` cuando un hijo falla por infraestructura ni las materialized lake views. Probalo primero en un workspace de desarrollo.
 
 ## 9. Operación (mini runbook)
 
@@ -276,8 +283,83 @@ Claude **no escribe en la base de control ni en el lakehouse**: genera scripts q
 | El pipeline tarda | Subí `concurrencia` del orquestador o el *Batch count* del ForEach. Mirá en el Monitoring hub qué entidad es la lenta |
 | `runMultiple` corta por timeout | Subí `timeout_celda_seg` o separá las entidades grandes en otro `LOAD_GROUP` |
 | Una regla `DROP` rechaza demasiado | Revisá `silver.dq_rechazos` antes de relajar la regla. Puede ser un problema real del origen |
+| Silver falló con `DELETE_MAX_PCT` | La extracción completa trajo muchas menos claves que las vivas. Revisá la copia y el origen antes de tocar nada. Si las bajas son reales (depuración del maestro), subí `DELETE_MAX_PCT` para **una** corrida y volvelo a su valor. **Cambio con impacto**: marca esas bajas y gold las saca |
+| Volver de `SCD2` a `MERGE` | No es automático. **Cambio con impacto**: perdés la historia. Exportá la tabla, poné `SILVER_MODE = 'OVERWRITE'` y `WATERMARK_VALUE = NULL`, corré una vez y volvé a `MERGE` |
 
 **Datos a confirmar en la documentación vigente**, porque cambian seguido: el estado de GA o preview de las materialized lake views y de su refresco incremental, los límites de pipelines (ForEach, Lookup, actividades) y si la actividad Copy ya admite elegir la conexión con contenido dinámico (eso reemplazaría el Switch).
+
+## 10. Historia (SCD tipo 2) y bajas del origen
+
+**En corto:** con `MERGE`, silver guarda solo el último estado de cada fila. Si un cliente cambia de provincia, gold pierde en qué provincia estaba cuando compró. Y si el origen borra o anula una fila, silver la sigue mostrando viva. Dos columnas de `meta.ENTITY` lo resuelven sin tocar código: `SILVER_MODE = 'SCD2'` guarda versiones con vigencia, y `DELETE_MODE` marca las bajas del origen. Ninguna borra filas en silver. Gold saca las bajas solo con agregar `_is_deleted` al `SELECT`.
+
+```mermaid
+flowchart LR
+    B[(bronze<br/>filas de la corrida)] --> Q[calidad y dedup]
+    Q --> D{DELETE_MODE}
+    D -->|FLAG| F[_is_deleted =<br/>DELETE_FLAG_EXPR]
+    D -->|ABSENT| A[claves vivas que no vinieron<br/>freno DELETE_MAX_PCT]
+    D -->|NONE| M
+    F --> M{SILVER_MODE}
+    A --> M
+    M -->|MERGE| S1[(silver<br/>una fila por clave<br/>_is_deleted, _deleted_at)]
+    M -->|SCD2| S2[(silver<br/>una fila por versión<br/>_valid_from, _valid_to, _is_current)]
+    S1 --> G[gold: SELECT con _is_deleted<br/>OVERWRITE filtra · MERGE borra]
+    S2 --> G
+```
+
+### Configuración
+
+| Columna de `meta.ENTITY` | Valores | Qué hace |
+|---|---|---|
+| `SILVER_MODE` | `SCD2` | Una fila por versión de cada clave. Requiere `PRIMARY_KEY` |
+| `SCD2_COLUMNS` | Columnas de silver separadas por coma | Las que abren versión nueva al cambiar. Vacío: todas menos la clave y `ORDER_COLUMN`. Las demás se actualizan en la versión vigente (tipo 1). **Nunca columnas PII**: `usp_VALIDATE_METADATA` lo marca |
+| `DELETE_MODE` | `NONE` (default), `FLAG`, `ABSENT` | Cómo se detecta una baja en el origen. Solo con `MERGE` o `SCD2` |
+| `DELETE_FLAG_EXPR` | Spark SQL sobre columnas de silver, ej. `anulada = true` | Con `FLAG`: la fila está dada de baja si da verdadero |
+| `DELETE_MAX_PCT` | 0 a 100, default 10 | Con `ABSENT`: si falta más de este % de las claves vivas, silver **falla** y no marca nada |
+
+| Cuándo | Bajas | Por qué |
+|---|---|---|
+| El origen tiene una columna de baja lógica (`Anulada`, `Activo`, `Borrado`); el perfil la marca como `candidata_baja_logica` | `FLAG` | Es lo más confiable. Reemplaza al `SOURCE_FILTER = 'Anulada = 0'`, que hace que una anulación posterior nunca llegue a silver |
+| El origen borra filas físicamente y la carga es `FULL` | `ABSENT` | Lo que estaba vivo y no vino, se borró. `usp_VALIDATE_METADATA` lo rechaza en incrementales: ahí lo que no vino solo no cambió |
+| El origen borra filas y la carga es incremental | Ninguna de las dos | Hace falta CDC o una tabla de borrados del origen [dato a confirmar] |
+
+### Columnas que agrega silver
+
+| Columna | Con | Qué es |
+|---|---|---|
+| `_is_deleted` | `SCD2`, o `DELETE_MODE` distinto de `NONE` | La fila (o la versión) quedó dada de baja en el origen |
+| `_deleted_at` | `MERGE` con bajas | Cuándo lo detectó silver. Si la fila sigue de baja, conserva la primera fecha |
+| `_valid_from`, `_valid_to` | `SCD2` | Vigencia: `[_valid_from, _valid_to)`. La primera versión de una clave vale desde `1900-01-01` y la vigente hasta `9999-12-31 23:59:59` |
+| `_is_current` | `SCD2` | Versión vigente. Hay como mucho una por clave; ninguna si la clave está dada de baja |
+| `_hash` | `SCD2` | SHA-256 de las columnas seguidas, para detectar cambios |
+
+### Cómo decide SCD2
+
+- **Cambia una columna seguida:** cierra la versión vigente y abre otra, las dos en el mismo instante. Ese instante es `ORDER_COLUMN` si es fecha u hora (la fecha de modificación del origen), si no `_ingested_at`. Nunca antes del inicio de la versión que cierra: los intervalos no se pisan.
+- **Cambia otra columna:** se actualiza en la versión vigente, sin versión nueva.
+- **Las versiones cerradas no guardan PII.** Las columnas PII que no se siguen quedan vacías al cerrar: solo la versión vigente tiene el email o el CUIT actual.
+- **Baja:** cierra la versión vigente con `_is_deleted = true`. Si la clave vuelve, abre una versión nueva. Si llega ya dada de baja y nunca estuvo, queda una versión cerrada, para que los hechos viejos la encuentren.
+- **Reproceso de una corrida vieja** (`reprocesar_run_id`): las claves que ya tienen una versión más nueva no se tocan y se cuentan como `fuera_de_orden`. Con `ABSENT`, un reproceso no evalúa bajas.
+- **Granularidad:** la de las corridas. Si una clave cambió dos veces entre corridas, queda el último estado.
+- **Una fila rechazada por una regla `DROP` no es una baja**: `ABSENT` compara las claves leídas antes de la calidad.
+- **Pasar una entidad de `MERGE` a `SCD2`** no requiere recargar: la primera corrida convierte la tabla (cada fila queda como su primera versión, vigente desde 1900) y lo informa como `convertida_a_scd2`.
+
+El resultado de silver trae un bloque `historia` (versiones nuevas y cerradas, bajas, fuera de orden) que queda en `log.RUN.RESULT_JSON`.
+
+### Gold
+
+Si el `SELECT` de un objeto gold devuelve una columna `_is_deleted`, `NB_MDP_30` saca esas claves: `OVERWRITE` las filtra y `MERGE` las borra. La columna no se guarda en gold. Si querés **conservar** las bajas en una dimensión (hay hechos viejos que las usan), renombrala: `_is_deleted AS discontinuado`.
+
+| Objeto | Patrón |
+|---|---|
+| Dimensión actual (una fila por clave) | `row_number() OVER (PARTITION BY clave ORDER BY _valid_from DESC) = 1`, con `NOT _is_current AS dado_de_baja`. No filtres solo `_is_current`: perderías las claves dadas de baja que tienen hechos |
+| Dimensión con historia | `xxhash64(clave, _valid_from) AS <x>_sk`, con `_valid_from AS vigente_desde`, `_valid_to AS vigente_hasta` |
+| Hecho | `JOIN` a la dimensión con historia por clave y `fecha >= vigente_desde AND fecha < vigente_hasta`. Si la fecha del hecho es `date`, la compara a las 00:00: un cambio a media mañana vale desde el día siguiente |
+| Hecho con bajas | `v._is_deleted` en el `SELECT` y `LOAD_MODE = 'MERGE'`: las ventas anuladas salen de gold |
+
+El ejemplo completo está en [`sql/03_ejemplo_historia.sql`](sql/03_ejemplo_historia.sql). Si usás [Calidad_Reconciliacion](../Calidad_Reconciliacion/README.md), las reglas que cuentan silver tienen que filtrar `_is_deleted` y, en `SCD2`, contar solo `_is_current`.
+
+**Qué está probado y qué no.** Silver y gold, con [`pruebas/prueba_scd2_bajas.py`](pruebas/prueba_scd2_bajas.py) en Spark 3.5.3 y Delta 3.2.1. El T-SQL de la ampliación (`ALTER TABLE` y `CHECK` en una base que ya existe) está escrito para SQL database de Fabric y Azure SQL, pero **no se ejecutó**: corré `01_ddl_control.sql` primero en DES. `whenNotMatchedBySource` no se usa a propósito, para que una fila rechazada por calidad no cuente como baja.
 
 ## Próximos pasos
 
@@ -285,4 +367,5 @@ Claude **no escribe en la base de control ni en el lakehouse**: genera scripts q
 2. Elegir 2 o 3 tablas reales de un origen, perfilarlas con [`Perfilado_Origen_Medallion`](../Perfilado_Origen_Medallion/README.md) y generar su metadata con la skill.
 3. Armar el pipeline (paso 3), hacer la primera corrida y revisar `log.RUN_STEP`.
 4. Definir los objetos gold que necesita el modelo semántico y documentarlo con `documentar-modelo-semantico`.
-5. Después, si hace falta: borrado lógico de filas eliminadas en el origen, SCD tipo 2 en dimensiones y despliegue a producción con deployment pipelines.
+5. Si el negocio mira el pasado de las dimensiones o el origen borra y anula filas: historia y bajas con [`03_ejemplo_historia.sql`](sql/03_ejemplo_historia.sql) (sección 10).
+6. Despliegue a producción con [`Despliegue_Entre_Ambientes`](../Despliegue_Entre_Ambientes/README.md).

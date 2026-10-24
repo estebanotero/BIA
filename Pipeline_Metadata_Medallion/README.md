@@ -221,6 +221,8 @@ En cada **Copy** (dentro de un case del Switch):
 - **Source**: la conexión del case, *Use query* = **Query**, consulta `@item().SOURCE_QUERY`.
 - **Destination**: el lakehouse, **Files**, carpeta `@item().LANDING_FOLDER`, formato **Parquet**.
 
+Para controlar gold antes de refrescar el modelo (totales, hechos sin dimensión, frescura), sumá las actividades 8 a 11 de [Calidad_Reconciliacion](../Calidad_Reconciliacion/README.md#4-pasos).
+
 `LKP_END_RUN` es un Lookup y no un Stored procedure porque necesitamos leer el estado que devuelve el SP. Las dependencias en **Completed** (4 y 6) hacen que el cierre se registre aunque algo haya fallado antes.
 
 Por qué un Switch: en una Copy la conexión se elige al diseñar, así que hace falta un case por conexión de origen. Si tenés muchos orígenes, una alternativa es un pipeline hijo por tipo de origen. Otra es llevar los orígenes a OneLake con **Copy job** o **mirroring** y configurar esas entidades como `FILES`, sin Copy en este pipeline.

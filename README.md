@@ -21,6 +21,7 @@ El patrón es el mismo en todos: **un notebook deja los datos listos, Claude tra
 |---|---|---|---|
 | [Perfilar un origen](Perfilado_Origen_Medallion/README.md) | Conocer el origen con datos (claves, tipos reales, nulos, relaciones, PII) y convertir ese perfil en el diseño de silver y gold y en la metadata del pipeline | `NB_PRF_` | `disenar-medallion-desde-perfil` |
 | [Pipeline metadata-driven medallion](Pipeline_Metadata_Medallion/README.md) | Cargar bronze, silver y gold con un solo pipeline y cuatro notebooks, según una base de control en SQL | `NB_MDP_` | `metadata-medallion` |
+| [Calidad y reconciliación](Calidad_Reconciliacion/README.md) | Controlar gold después de cada carga: cuadre entre capas por período, hechos sin dimensión, frescura y reglas de negocio. Si una regla grave falla, el pipeline frena antes de refrescar el modelo | `NB_CAL_` | `proponer-reglas-calidad` |
 
 ### Consumo: modelo semántico y agente
 
@@ -35,7 +36,7 @@ El patrón es el mismo en todos: **un notebook deja los datos listos, Claude tra
 | Documento | Qué tiene |
 |---|---|
 | [Convenciones](docs/convenciones.md) | Estructura de carpetas, nombres, rutas del lakehouse, una sola base de control, dónde van los artefactos de cada implementación y los desvíos corregidos |
-| [Frameworks propuestos](docs/frameworks_propuestos.md) | Lo que falta para llevar esto a producción (calidad, SCD2, catálogo, costos), priorizado. CI/CD, monitoreo y seguridad ya están construidos |
+| [Frameworks propuestos](docs/frameworks_propuestos.md) | Lo que falta para llevar esto a producción (SCD2, catálogo, costos), priorizado. CI/CD, monitoreo, seguridad y calidad ya están construidos |
 
 ## Cómo se conectan los casos
 
@@ -47,6 +48,7 @@ flowchart LR
         META[(meta.* · log.*)]
         CFG[(config.DOMAIN_OBJECTS)]
         MON[(mon.ALERTA)]
+        DQ[(dq.REGLA · dq.RESULTADO)]
     end
 
     subgraph LH[LH_MEDALLION]
@@ -79,6 +81,8 @@ flowchart LR
     MON -.->|parte diario| CL
     SEG[Seguridad_Acceso_Datos] -.->|GRANT, CLS, RLS| V
     SEG -.->|roles RLS TMDL| SM
+    DQ -.->|NB_CAL_01 después de gold| G
+    DQ -.-> MON
 ```
 
 ### Secuencia recomendada para un origen nuevo
@@ -90,7 +94,7 @@ flowchart LR
 | 2 | Perfilado: `NB_PRF_01` y `NB_PRF_02` | `perfil.*`, `perfil.json`, `resumen_perfil.md` | Paso 3 |
 | 3 | Perfilado: skill `disenar-medallion-desde-perfil` | `diseno_<origen>.md`, `alta_<origen>.sql` | Pasos 4 y 5 |
 | 4 | Perfilado: `NB_PRF_03` con el `CONFIG_JSON` real | `perfil.validacion` sin bloqueantes | Paso 5 |
-| 5 | Pipeline medallion: corrida completa | Silver y gold | Pasos 6 a 8 |
+| 5 | Pipeline medallion: corrida completa, con las reglas de [calidad](Calidad_Reconciliacion/README.md) al final | Silver y gold que cuadran | Pasos 6 a 8 |
 | 6 | Documentar el modelo que lee gold | `modelo.json`, diccionario, descripciones en el modelo | Pasos 7 y 8 |
 | 7 | Performance del modelo (reusa `modelo.json`) | PR con cambios TMDL e `informe_perf.md` | El modelo en producción |
 | 8 | Agente de datos sobre `agente.*` y el modelo | Agente publicado y evaluado | Negocio, Claude vía MCP |
@@ -110,6 +114,7 @@ El inventario es independiente: se puede correr en cualquier momento para tener 
 | Base de control: `config.*`, `meta.*`, `log.*` | Inventario, Pipeline medallion, Perfilado | Pipeline medallion, `NB_PRF_03`, Monitoreo |
 | `mon.*` (SLA y alertas) | Monitoreo (`NB_MON_01`) | Reporte operativo, skill `diagnosticar-plataforma` |
 | `agente_ctl.eval_historial`, `perf.comparacion` | Agente, Performance | Monitoreo |
+| `dq.REGLA`, `dq.RESULTADO` | Calidad (reglas vía Claude, revisadas) | `PL_MDP_MEDALLION` (frena si falla), Monitoreo |
 | `meta.ENTITY_COLUMN.IS_PII` y `Comun/patrones_sensibles.json` | Perfilado (vía Claude), una persona | Seguridad (qué columnas no ve cada grupo) |
 
 ## Estado de prueba
@@ -119,6 +124,7 @@ El inventario es independiente: se puede correr en cualquier momento para tener 
 | Inventario_Workspace | — | No: la versión v2 y el stored procedure sin ejecutar [dato a confirmar] |
 | Perfilado_Origen_Medallion | Sí, `pruebas/prueba_local.py` (Spark 3.5.3 + Delta 3.2.1) | No |
 | Pipeline_Metadata_Medallion | Sí, notebooks con `pruebas/prueba_local.py` | No: pipeline y stored procedures sin ejecutar |
+| Calidad_Reconciliacion | Sí, lógica del notebook y reglas de ejemplo en Spark 3.5.3 | No: T-SQL y actividades del pipeline sin ejecutar |
 | Documentar_Modelo_Semantico | — | No |
 | Performance_Modelo_Semantico | Sí, lógica de los notebooks | No |
 | Agente_Datos_Fabric | Sí, reglas del banco y MCP contra un agente simulado | No: SDK y vistas sin ejecutar |
@@ -130,7 +136,7 @@ Las pruebas locales corren en cada PR con [`.github/workflows/pruebas.yml`](.git
 
 ## Instalar las skills
 
-Cada skill está en `<Caso>/skill/<nombre>/`. Para Claude Code, copiá la carpeta a `.claude/skills/` del proyecto donde trabajás; en claude.ai, subila como skill. Las ocho skills de BIA se pueden instalar juntas: cada una dice en su `description` cuándo usarla.
+Cada skill está en `<Caso>/skill/<nombre>/`. Para Claude Code, copiá la carpeta a `.claude/skills/` del proyecto donde trabajás; en claude.ai, subila como skill. Las nueve skills de BIA se pueden instalar juntas: cada una dice en su `description` cuándo usarla.
 
 ## Estructura
 
@@ -145,6 +151,7 @@ BIA/
 ├── Inventario_Workspace/          sql/ · notebooks/NB_INV_01
 ├── Perfilado_Origen_Medallion/    sql/ · notebooks/NB_PRF_01..03 · skill/disenar-medallion-desde-perfil/ · pruebas/
 ├── Pipeline_Metadata_Medallion/   sql/ · notebooks/NB_MDP_00..30 · skill/metadata-medallion/ · pruebas/
+├── Calidad_Reconciliacion/        sql/ · notebooks/NB_CAL_01 · skill/proponer-reglas-calidad/ · pruebas/
 ├── Documentar_Modelo_Semantico/   notebooks/NB_DOC_01..03 · skill/documentar-modelo-semantico/
 ├── Performance_Modelo_Semantico/  notebooks/NB_PERF_01..03 · skill/optimizar-modelo-semantico/ · ci/ · pruebas/
 ├── Agente_Datos_Fabric/           sql/ · notebooks/NB_AGT_01..03 · mcp/ · skill/agente-datos-fabric/ · pruebas/

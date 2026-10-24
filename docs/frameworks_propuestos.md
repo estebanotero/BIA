@@ -1,6 +1,6 @@
 # Frameworks que faltan
 
-**En corto:** BIA cubre bien el camino *origen → bronze → silver → gold → modelo semántico → agente*, con Claude en cada paso. Lo que falta es lo que rodea a ese camino cuando pasa a producción: **cómo se despliega entre ambientes, cómo se opera y cómo se gobierna**. Esta lista es una propuesta. **Construidos:** el 1 ([`Despliegue_Entre_Ambientes`](../Despliegue_Entre_Ambientes/README.md)) , el 2 ([`Monitoreo_Plataforma`](../Monitoreo_Plataforma/README.md)) y el 3 ([`Seguridad_Acceso_Datos`](../Seguridad_Acceso_Datos/README.md)), los tres el 2026-10-24. El resto se arma solo con el OK de Eduardo, en su carpeta y por PR, con la misma estructura que el resto (ver [convenciones](convenciones.md)).
+**En corto:** BIA cubre bien el camino *origen → bronze → silver → gold → modelo semántico → agente*, con Claude en cada paso. Lo que falta es lo que rodea a ese camino cuando pasa a producción: **cómo se despliega entre ambientes, cómo se opera y cómo se gobierna**. Esta lista es una propuesta. **Construidos:** el 1 ([`Despliegue_Entre_Ambientes`](../Despliegue_Entre_Ambientes/README.md)) , el 2 ([`Monitoreo_Plataforma`](../Monitoreo_Plataforma/README.md)) , el 3 ([`Seguridad_Acceso_Datos`](../Seguridad_Acceso_Datos/README.md)) y el 4 ([`Calidad_Reconciliacion`](../Calidad_Reconciliacion/README.md)), los cuatro el 2026-10-24. El resto se arma solo con el OK de Eduardo, en su carpeta y por PR, con la misma estructura que el resto (ver [convenciones](convenciones.md)).
 
 Revisión del 2026-10-24.
 
@@ -11,7 +11,7 @@ Revisión del 2026-10-24.
 | 1 | [`Despliegue_Entre_Ambientes`](../Despliegue_Entre_Ambientes/README.md) (CI/CD DES → PRD) · **construido** | **Alta** | Los seis casos dicen "probalo en desarrollo" y ninguno dice cómo llega a producción | — |
 | 2 | [`Monitoreo_Plataforma`](../Monitoreo_Plataforma/README.md) (observabilidad y alertas) · **construido** | **Alta** | Cada caso deja su log en un lugar distinto y nadie los mira juntos | Inventario, MDP, AGT, PERF |
 | 3 | [`Seguridad_Acceso_Datos`](../Seguridad_Acceso_Datos/README.md) (roles, RLS/CLS, PII) · **construido** | **Alta** | La PII se detecta en dos casos, pero nada aplica permisos ni etiquetas | PRF, DOC |
-| 4 | `Calidad_Reconciliacion` (calidad en gold y cuadre con el origen) | Media | MDP valida fila por fila en silver; nadie controla totales ni reglas entre tablas | MDP |
+| 4 | [`Calidad_Reconciliacion`](../Calidad_Reconciliacion/README.md) (calidad en gold y cuadre con el origen) · **construido** | Media | MDP valida fila por fila en silver; nadie controla totales ni reglas entre tablas | MDP |
 | 5 | `Historia_SCD_Bajas` (SCD tipo 2 y borrado lógico) | Media | Está en los próximos pasos de MDP y es lo primero que pide un negocio con dimensiones que cambian | MDP, PRF |
 | 6 | `Catalogo_Linaje` (catálogo unificado) | Baja | Ya existen las piezas (inventario, metadata, perfil, diccionario), falta unirlas | Inventario, MDP, PRF, DOC |
 | 7 | `Costos_Capacidad` (FinOps de Fabric) | Baja | Útil cuando haya varias cargas programadas en la misma capacidad | MDP, Monitoreo |
@@ -56,7 +56,9 @@ Ver [`Seguridad_Acceso_Datos`](../Seguridad_Acceso_Datos/README.md). Lo que sigu
 - Revisión periódica de accesos con el inventario de items.
 - Rol de Claude: skill que propone la matriz y los scripts de permisos a partir de la metadata, para revisión.
 
-## 4. Calidad y reconciliación
+## 4. Calidad y reconciliación · construido
+
+Ver [`Calidad_Reconciliacion`](../Calidad_Reconciliacion/README.md). Lo que sigue es la propuesta original. El cuadre contra el **origen** quedó como próximo paso del caso, porque el pipeline todavía no registra las filas que lee cada copia.
 
 **Problema.** `meta.DQ_RULE` valida filas en silver. No hay controles de totales contra el origen, de integridad entre hechos y dimensiones en gold, ni de frescura.
 

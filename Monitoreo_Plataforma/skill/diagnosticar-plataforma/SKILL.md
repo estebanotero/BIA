@@ -55,6 +55,8 @@ Si un origen no aparece en `origenes_evaluados`, decilo: sus alertas no se revis
 | `INV_ITEMS_BORRADOS` | Alguien borró o renombró items en el workspace | — | Confirmar que fue a propósito. En PRD, lo normal es que solo cambie por despliegue |
 | `AGT_NO_APRUEBA` en `production` | El agente empeoró: cambió gold, el modelo o las instrucciones | — | Ver el CSV de fallas de `NB_AGT_03` y seguir con la skill `agente-datos-fabric` |
 | `PERF_REGRESION` | Un cambio de TMDL empeoró consultas o cambió resultados | — | No mergear ese PR; ver `informe_perf.md` con la skill `optimizar-modelo-semantico` |
+| `CAL_REGLA_FALLA` | Los datos no cuadran entre capas, hay hechos sin dimensión o gold está viejo | Si la causa fue una carga parcial, sí; si es el origen, no | Ver `DETALLE` en `dq.RESULTADO` y seguir con la skill `proponer-reglas-calidad` (tarea B) |
+| `CAL_REGLA_ERROR_EJECUCION` | La regla referencia una tabla o columna que cambió | No | Corregir la regla en `dq.REGLA` por script revisado |
 
 ## Salida
 

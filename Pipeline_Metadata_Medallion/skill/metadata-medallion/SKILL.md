@@ -13,6 +13,8 @@ Hay tres tareas. Identificá cuál te piden antes de empezar.
 
 Entrada: el DDL de la tabla de origen (`CREATE TABLE`, `sp_help`, `INFORMATION_SCHEMA.COLUMNS`), una muestra de filas o una lista de columnas. Si es una carpeta de archivos, la ruta en OneLake y un archivo de ejemplo.
 
+Si te pasan un `perfil.json` (caso `Perfilado_Origen_Medallion/`), usá también la skill `disenar-medallion-desde-perfil`: las decisiones de abajo se toman con la evidencia del perfil en lugar de suponerlas.
+
 1. Por cada tabla decidí y **explicá en una línea** cada decisión:
    - `LOAD_TYPE`: `INCREMENTAL` si hay una columna confiable que siempre crece (fecha de modificación, ID autoincremental). Si no, `FULL`. Ante la duda, `FULL`: es más caro pero no pierde datos.
    - `WATERMARK_COLUMN` y `WATERMARK_TYPE` (`DATETIME` o `INT`). Una fecha de **alta** no sirve si las filas se modifican después; decilo.

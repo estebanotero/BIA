@@ -19,6 +19,7 @@ para que puedan entenderse, ejecutarse y mantenerse.
 - [Documentar un modelo semántico de Fabric con Claude](Documentar_Modelo_Semantico/README.md): notebooks que extraen la estructura y una muestra del modelo, una skill para que Claude redacte el diccionario de datos, y la carga revisada de las descripciones en el modelo.
 - [Mejorar la performance de un modelo semántico PBIP con Claude](Performance_Modelo_Semantico/README.md): extiende el caso anterior con notebooks que diagnostican el modelo (Vertipaq Analyzer, Best Practice Analyzer, Direct Lake) y miden consultas DAX con traza, una skill para que Claude proponga optimizaciones y las aplique en los archivos TMDL por PR, y la comparación de antes y después.
 - [Pipeline metadata-driven medallion en Fabric, con Claude](Pipeline_Metadata_Medallion/README.md): un pipeline y cuatro notebooks cargan bronze, silver y gold según una base de control en SQL; una skill para que Claude genere la metadata de cada origen y diagnostique las corridas.
+- [Perfilar una base de origen para diseñar silver y gold, con Claude](Perfilado_Origen_Medallion/README.md): notebooks que perfilan las tablas de origen en bronze (tipos reales, nulos, claves candidatas, relaciones implícitas, PII y calidad), una skill para que Claude convierta el perfil en el diseño de silver y gold y en la metadata del pipeline medallion, y un ensayo en seco de esa metadata contra los datos.
 - [Agente de datos en Fabric, con Claude](Agente_Datos_Fabric/README.md): dónde guardar los datos para el agente (lakehouse, warehouse o modelo semántico), un Fabric data agent que Claude usa vía MCP, y un proceso de mejora continua con preguntas y respuestas validadas por cada área de negocio, que entran al agente como ejemplos e instrucciones y lo miden como evaluaciones.
 
 ## Cómo usar este repositorio
@@ -76,6 +77,22 @@ BIA/
 │   ├── skill/
 │   │   └── metadata-medallion/
 │   │       ├── SKILL.md
+│   │       └── plantillas/
+│   └── pruebas/
+│       └── prueba_local.py
+├── Perfilado_Origen_Medallion/
+│   ├── README.md
+│   ├── sql/
+│   │   ├── 01_catalogo_origen.sql
+│   │   └── 02_consultas_perfil.sql
+│   ├── notebooks/
+│   │   ├── NB_PRF_01_perfilar.ipynb
+│   │   ├── NB_PRF_02_relaciones.ipynb
+│   │   └── NB_PRF_03_validar_propuesta.ipynb
+│   ├── skill/
+│   │   └── disenar-medallion-desde-perfil/
+│   │       ├── SKILL.md
+│   │       ├── reglas_perfil_a_metadata.md
 │   │       └── plantillas/
 │   └── pruebas/
 │       └── prueba_local.py

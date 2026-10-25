@@ -4,7 +4,7 @@
 
 | Archivo | Paso | Qué hace | ¿Modifica el modelo? |
 |---|---|---|---|
-| [`notebooks/NB_DOC_01_extraer_modelo.ipynb`](notebooks/NB_DOC_01_extraer_modelo.ipynb) | 1 | Lee tablas, columnas, medidas y relaciones, más filas, nulos, cardinalidad y una muestra. Genera `modelo.json` y `descripciones.csv` | No |
+| [`notebooks/NB_DOC_01_extraer_modelo.ipynb`](notebooks/NB_DOC_01_extraer_modelo.ipynb) | 1 | Lee tablas (con la tabla del lakehouse o la expresión de la que lee cada una), columnas, medidas y relaciones, más filas, nulos, cardinalidad y una muestra. Genera `modelo.json` (también lo usan [Performance](../Performance_Modelo_Semantico/README.md) y [Catalogo_Linaje](../Catalogo_Linaje/README.md)) y `descripciones.csv` | No |
 | [`notebooks/NB_DOC_02_redactar_con_claude.ipynb`](notebooks/NB_DOC_02_redactar_con_claude.ipynb) | 2 (opcional) | Llama a la API de Claude, una tabla por llamada, y completa `descripciones.csv` | No |
 | [`skill/documentar-modelo-semantico/`](skill/documentar-modelo-semantico/SKILL.md) | 2 | La misma tarea hecha conversando con Claude (Claude Code o claude.ai), con plantillas | No |
 | [`notebooks/NB_DOC_03_cargar_y_publicar.ipynb`](notebooks/NB_DOC_03_cargar_y_publicar.ipynb) | 3 y 4 | Backup, carga de las descripciones aprobadas, `diccionario.md` y tabla Delta `doc.diccionario` | **Sí**, solo con `DRY_RUN = False` |

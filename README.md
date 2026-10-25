@@ -13,6 +13,7 @@ El patrón es el mismo en todos: **un notebook deja los datos listos, Claude tra
 | [Inventario de un workspace](Inventario_Workspace/README.md) | Sincronizar los items de uno o más workspaces con la base de control (staging + `MERGE`, IDs estables y bajas lógicas) | `NB_INV_` | — |
 | [Desplegar entre ambientes (CI/CD)](Despliegue_Entre_Ambientes/README.md) | Llevar lo que se arma en DES a TEST y PRD: repo por implementación, `parameter.yml`, migraciones de la base de control y GitHub Actions con fabric-cicd y aprobación para PRD | — | `revisar-despliegue-fabric` |
 | [Monitorear la plataforma](Monitoreo_Plataforma/README.md) | Juntar el estado de todos los casos en el esquema `mon`, abrir y cerrar alertas con reglas fijas (fallas, SLA, calidad, volumen, agente, performance), avisar por un solo canal y armar el parte diario | `NB_MON_` | `diagnosticar-plataforma` |
+| [Catálogo y linaje](Catalogo_Linaje/README.md) | Unir inventario, metadata, perfil y modelos en un grafo origen → bronze → silver → gold → modelo → reporte: impacto de un cambio, procedencia de un número, dueños, y hallazgos como dependencias faltantes o PII que llega a gold | `NB_CAT_` | `explorar-linaje` |
 | [Seguridad y acceso a los datos](Seguridad_Acceso_Datos/README.md) | Decidir quién ve qué con una matriz aprobada por el dueño de los datos y generar los permisos: `GRANT` por objeto o sin columnas PII (CLS), RLS en el SQL endpoint y roles RLS en TMDL. Relevar PII y roles reales contra la matriz | `NB_SEG_` | `proponer-accesos-datos` |
 
 ### Datos: del origen a gold
@@ -36,7 +37,7 @@ El patrón es el mismo en todos: **un notebook deja los datos listos, Claude tra
 | Documento | Qué tiene |
 |---|---|
 | [Convenciones](docs/convenciones.md) | Estructura de carpetas, nombres, rutas del lakehouse, una sola base de control, dónde van los artefactos de cada implementación y los desvíos corregidos |
-| [Frameworks propuestos](docs/frameworks_propuestos.md) | Lo que falta para llevar esto a producción (catálogo, costos), priorizado. CI/CD, monitoreo, seguridad, calidad e historia con bajas ya están construidos |
+| [Frameworks propuestos](docs/frameworks_propuestos.md) | Lo que falta para llevar esto a producción (costos y capacidad), priorizado. CI/CD, monitoreo, seguridad, calidad, historia con bajas y catálogo ya están construidos |
 
 ## Cómo se conectan los casos
 
@@ -49,6 +50,7 @@ flowchart LR
         CFG[(config.DOMAIN_OBJECTS)]
         MON[(mon.ALERTA)]
         DQ[(dq.REGLA · dq.RESULTADO)]
+        CATA[(cat.ACTIVO<br/>dueños)]
     end
 
     subgraph LH[LH_MEDALLION]
@@ -83,6 +85,9 @@ flowchart LR
     SEG -.->|roles RLS TMDL| SM
     DQ -.->|NB_CAL_01 después de gold| G
     DQ -.-> MON
+    CATL[Catalogo_Linaje<br/>NB_CAT_01] -.->|lee meta, config,<br/>modelo.json, cat| LIN[(catalogo.*<br/>linaje e impacto)]
+    CATA -.-> CATL
+    LIN -.->|explorar-linaje| CL
 ```
 
 ### Secuencia recomendada para un origen nuevo
@@ -99,7 +104,7 @@ flowchart LR
 | 7 | Performance del modelo (reusa `modelo.json`) | PR con cambios TMDL e `informe_perf.md` | El modelo en producción |
 | 8 | Agente de datos sobre `agente.*` y el modelo | Agente publicado y evaluado | Negocio, Claude vía MCP |
 
-El inventario es independiente: se puede correr en cualquier momento para tener la lista de items de la plataforma. El [monitoreo](Monitoreo_Plataforma/README.md) se prende después del paso 5, cuando hay corridas reales, y suma reglas a medida que se agregan el agente y las mediciones de performance. La [seguridad](Seguridad_Acceso_Datos/README.md) se define antes de abrir gold, las vistas `agente.*` y el modelo a usuarios de negocio (pasos 6 a 8), y se revisa después de cada despliegue. El [despliegue entre ambientes](Despliegue_Entre_Ambientes/README.md) acompaña todos los pasos: lo que se arma en DES llega a TEST y PRD por PR, y los artefactos de cada paso (`alta_<origen>.sql`, diccionarios, instrucciones de agentes) viven en el repo de la implementación.
+El inventario es independiente: se puede correr en cualquier momento para tener la lista de items de la plataforma. El [catálogo](Catalogo_Linaje/README.md) se arma una vez por día, cuando hay metadata y modelos documentados (después del paso 6), y se consulta antes de cada cambio. El [monitoreo](Monitoreo_Plataforma/README.md) se prende después del paso 5, cuando hay corridas reales, y suma reglas a medida que se agregan el agente y las mediciones de performance. La [seguridad](Seguridad_Acceso_Datos/README.md) se define antes de abrir gold, las vistas `agente.*` y el modelo a usuarios de negocio (pasos 6 a 8), y se revisa después de cada despliegue. El [despliegue entre ambientes](Despliegue_Entre_Ambientes/README.md) acompaña todos los pasos: lo que se arma en DES llega a TEST y PRD por PR, y los artefactos de cada paso (`alta_<origen>.sql`, diccionarios, instrucciones de agentes) viven en el repo de la implementación.
 
 ### Qué se comparte entre casos
 
@@ -109,13 +114,14 @@ El inventario es independiente: se puede correr en cualquier momento para tener 
 | `CONFIG_JSON` de `meta.usp_GET_RUN_CONFIG` | Base de control | `NB_MDP_00`, `NB_PRF_03` |
 | `bronze.*` | Pipeline medallion | Perfilado, silver |
 | `gold.*` | Pipeline medallion | Modelo semántico, vistas `agente.*` |
-| `Files/doc_modelos/<modelo>/modelo.json` | `NB_DOC_01` | Skill de documentación, Performance |
+| `Files/doc_modelos/<modelo>/modelo.json` | `NB_DOC_01` | Skill de documentación, Performance, Catálogo (de qué tabla lee cada tabla del modelo) |
 | [`Comun/patrones_sensibles.json`](Comun/README.md) (nombres de columna PII) | Una persona, por PR | `NB_DOC_01`, `NB_PRF_01`, `NB_SEG_01..02` |
 | Base de control: `config.*`, `meta.*`, `log.*` | Inventario, Pipeline medallion, Perfilado | Pipeline medallion, `NB_PRF_03`, Monitoreo |
 | `mon.*` (SLA y alertas) | Monitoreo (`NB_MON_01`) | Reporte operativo, skill `diagnosticar-plataforma` |
 | `agente_ctl.eval_historial`, `perf.comparacion` | Agente, Performance | Monitoreo |
 | `dq.REGLA`, `dq.RESULTADO` | Calidad (reglas vía Claude, revisadas) | `PL_MDP_MEDALLION` (frena si falla), Monitoreo |
-| `meta.ENTITY_COLUMN.IS_PII` y `Comun/patrones_sensibles.json` | Perfilado (vía Claude), una persona | Seguridad (qué columnas no ve cada grupo) |
+| `meta.ENTITY_COLUMN.IS_PII` y `Comun/patrones_sensibles.json` | Perfilado (vía Claude), una persona | Seguridad (qué columnas no ve cada grupo), Catálogo (PII que llega a gold) |
+| `cat.ACTIVO`, `catalogo.*` | Catálogo (dueños vía Claude, revisados; linaje con `NB_CAT_01`) | Skill `explorar-linaje`, análisis de impacto antes de un cambio |
 
 ## Estado de prueba
 
@@ -131,12 +137,13 @@ El inventario es independiente: se puede correr en cualquier momento para tener 
 | Despliegue_Entre_Ambientes | Sí, scripts y workflows con el validador real de fabric-cicd 1.4.0 | No: sin despliegue real, login OIDC ni conexión a la base |
 | Monitoreo_Plataforma | Sí, las reglas del notebook con situaciones armadas | No: script SQL, JDBC y avisos sin ejecutar |
 | Seguridad_Acceso_Datos | Sí, PII, matrices, scripts generados y revisión con datos armados | No: consultas al endpoint y scripts de permisos sin ejecutar |
+| Catalogo_Linaje | Sí, funciones sin Spark y notebook completo con Spark 3.5.3 + Delta | No: T-SQL, lectura de reportes con sempy y origen de las tablas en TOM sin ejecutar |
 
 Las pruebas locales corren en cada PR con [`.github/workflows/pruebas.yml`](.github/workflows/pruebas.yml). Probá siempre primero en un workspace de desarrollo.
 
 ## Instalar las skills
 
-Cada skill está en `<Caso>/skill/<nombre>/`. Para Claude Code, copiá la carpeta a `.claude/skills/` del proyecto donde trabajás; en claude.ai, subila como skill. Las nueve skills de BIA se pueden instalar juntas: cada una dice en su `description` cuándo usarla.
+Cada skill está en `<Caso>/skill/<nombre>/`. Para Claude Code, copiá la carpeta a `.claude/skills/` del proyecto donde trabajás; en claude.ai, subila como skill. Las diez skills de BIA se pueden instalar juntas: cada una dice en su `description` cuándo usarla.
 
 ## Estructura
 
@@ -157,6 +164,7 @@ BIA/
 ├── Agente_Datos_Fabric/           sql/ · notebooks/NB_AGT_01..03 · mcp/ · skill/agente-datos-fabric/ · pruebas/
 ├── Despliegue_Entre_Ambientes/    plantilla_repo/ (workflows, deploy/, parameter.yml) · skill/revisar-despliegue-fabric/ · pruebas/
 ├── Monitoreo_Plataforma/          sql/ · notebooks/NB_MON_01 · skill/diagnosticar-plataforma/ · pruebas/
+├── Catalogo_Linaje/               sql/ · notebooks/NB_CAT_01 · skill/explorar-linaje/ · pruebas/
 └── Seguridad_Acceso_Datos/        notebooks/NB_SEG_01..02 · skill/proponer-accesos-datos/ · pruebas/
 ```
 

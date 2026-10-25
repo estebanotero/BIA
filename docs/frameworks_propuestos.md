@@ -1,6 +1,6 @@
 # Frameworks que faltan
 
-**En corto:** BIA cubre bien el camino *origen → bronze → silver → gold → modelo semántico → agente*, con Claude en cada paso. Lo que falta es lo que rodea a ese camino cuando pasa a producción: **cómo se despliega entre ambientes, cómo se opera y cómo se gobierna**. Esta lista es una propuesta. **Construidos** el 2026-10-24: el 1 ([`Despliegue_Entre_Ambientes`](../Despliegue_Entre_Ambientes/README.md)), el 2 ([`Monitoreo_Plataforma`](../Monitoreo_Plataforma/README.md)), el 3 ([`Seguridad_Acceso_Datos`](../Seguridad_Acceso_Datos/README.md)), el 4 ([`Calidad_Reconciliacion`](../Calidad_Reconciliacion/README.md)) y el 5, como extensión del pipeline medallion ([historia y bajas](../Pipeline_Metadata_Medallion/README.md#10-historia-scd-tipo-2-y-bajas-del-origen)). El resto se arma solo con el OK de Eduardo, en su carpeta y por PR, con la misma estructura que el resto (ver [convenciones](convenciones.md)).
+**En corto:** BIA cubre bien el camino *origen → bronze → silver → gold → modelo semántico → agente*, con Claude en cada paso. Lo que falta es lo que rodea a ese camino cuando pasa a producción: **cómo se despliega entre ambientes, cómo se opera y cómo se gobierna**. Esta lista es una propuesta. **Construidos** el 2026-10-24: el 1 ([`Despliegue_Entre_Ambientes`](../Despliegue_Entre_Ambientes/README.md)), el 2 ([`Monitoreo_Plataforma`](../Monitoreo_Plataforma/README.md)), el 3 ([`Seguridad_Acceso_Datos`](../Seguridad_Acceso_Datos/README.md)), el 4 ([`Calidad_Reconciliacion`](../Calidad_Reconciliacion/README.md)) el 5, como extensión del pipeline medallion ([historia y bajas](../Pipeline_Metadata_Medallion/README.md#10-historia-scd-tipo-2-y-bajas-del-origen)), y el 6 ([`Catalogo_Linaje`](../Catalogo_Linaje/README.md)) el 2026-10-25. El resto se arma solo con el OK de Eduardo, en su carpeta y por PR, con la misma estructura que el resto (ver [convenciones](convenciones.md)).
 
 Revisión del 2026-10-24.
 
@@ -13,7 +13,7 @@ Revisión del 2026-10-24.
 | 3 | [`Seguridad_Acceso_Datos`](../Seguridad_Acceso_Datos/README.md) (roles, RLS/CLS, PII) · **construido** | **Alta** | La PII se detecta en dos casos, pero nada aplica permisos ni etiquetas | PRF, DOC |
 | 4 | [`Calidad_Reconciliacion`](../Calidad_Reconciliacion/README.md) (calidad en gold y cuadre con el origen) · **construido** | Media | MDP valida fila por fila en silver; nadie controla totales ni reglas entre tablas | MDP |
 | 5 | [`Historia_SCD_Bajas`](../Pipeline_Metadata_Medallion/README.md#10-historia-scd-tipo-2-y-bajas-del-origen) (SCD tipo 2 y borrado lógico) · **construido** en MDP | Media | Está en los próximos pasos de MDP y es lo primero que pide un negocio con dimensiones que cambian | MDP, PRF |
-| 6 | `Catalogo_Linaje` (catálogo unificado) | Baja | Ya existen las piezas (inventario, metadata, perfil, diccionario), falta unirlas | Inventario, MDP, PRF, DOC |
+| 6 | [`Catalogo_Linaje`](../Catalogo_Linaje/README.md) (catálogo unificado) · **construido** | Baja | Ya existen las piezas (inventario, metadata, perfil, diccionario), falta unirlas | Inventario, MDP, PRF, DOC |
 | 7 | `Costos_Capacidad` (FinOps de Fabric) | Baja | Útil cuando haya varias cargas programadas en la misma capacidad | MDP, Monitoreo |
 
 ## 1. Despliegue entre ambientes (CI/CD) · construido
@@ -72,7 +72,9 @@ Ver la [sección 10 del pipeline medallion](../Pipeline_Metadata_Medallion/READM
 
 **Qué tendría.** Nuevos modos en `meta.ENTITY` (`SILVER_MODE = 'SCD2'`, columna de baja lógica que PRF ya detecta como `candidata_baja_logica`), cambios en `NB_MDP_20_silver` y pruebas locales. Es una **extensión de MDP**, no un caso aparte: podría ir como PR sobre esa carpeta.
 
-## 6. Catálogo y linaje
+## 6. Catálogo y linaje · construido
+
+Ver [`Catalogo_Linaje`](../Catalogo_Linaje/README.md). Lo que sigue es la propuesta original. Purview quedó como opción C (integración) en su README.
 
 **Problema.** Ya hay inventario de items, metadata del pipeline, perfil del origen y diccionario del modelo, pero cada uno en su tabla.
 

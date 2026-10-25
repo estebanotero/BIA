@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        caso: [Pipeline_Metadata_Medallion, Perfilado_Origen_Medallion, Agente_Datos_Fabric, Calidad_Reconciliacion]
+        caso: [Pipeline_Metadata_Medallion, Perfilado_Origen_Medallion, Agente_Datos_Fabric, Calidad_Reconciliacion, Catalogo_Linaje]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4

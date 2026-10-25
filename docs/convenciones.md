@@ -26,7 +26,7 @@ Revisión del 2026-10-24 sobre `main` (después del merge del PR #5). Correccion
 | Qué | Convención | Ejemplos |
 |---|---|---|
 | Carpeta del caso | `Palabra_Palabra` en español, sin tildes | `Pipeline_Metadata_Medallion` |
-| Prefijo de notebooks | Tres o cuatro letras únicas por caso | `DOC`, `PERF`, `MDP`, `PRF`, `AGT`, `INV`, `MON`, `SEG`, `CAL` |
+| Prefijo de notebooks | Tres o cuatro letras únicas por caso | `DOC`, `PERF`, `MDP`, `PRF`, `AGT`, `INV`, `MON`, `SEG`, `CAL`, `CAT` |
 | Notebook | `NB_<PREFIJO>_<NN>_<verbo_objeto>` | `NB_PRF_01_perfilar` |
 | Numeración | `01`, `02`, `03` en el orden de uso. `MDP` usa `00/10/20/30` a propósito: `00` es el orquestador y las decenas son las capas | `NB_MDP_20_silver` |
 | Skill | `kebab-case`, verbo + objeto, en español | `optimizar-modelo-semantico` |
@@ -40,10 +40,10 @@ Revisión del 2026-10-24 sobre `main` (después del merge del PR #5). Correccion
 | Pieza | Dónde | Casos |
 |---|---|---|
 | Datos (bronze, silver, gold) | `LH_MEDALLION`, esquemas `bronze`, `silver`, `gold` | MDP, PRF, AGT |
-| Tablas Delta de cada caso | `LH_MEDALLION`, un esquema por caso: `perfil`, `doc`, `perf`, `agente_ctl` | PRF, DOC, PERF, AGT |
+| Tablas Delta de cada caso | `LH_MEDALLION`, un esquema por caso: `perfil`, `doc`, `perf`, `agente_ctl`, `catalogo` | PRF, DOC, PERF, AGT, CAT |
 | Vistas para el agente | `LH_MEDALLION`, esquema `agente` (solo vistas de negocio, sin PII) | AGT |
 | Archivos de trabajo | `Files/<area>/<objeto>/...` en el lakehouse por defecto del notebook | `Files/landing/<entidad>/<run_id>/`, `Files/perfil/<origen>/`, `Files/doc_modelos/<modelo>/`, `Files/doc_modelos/<modelo>/perf/<corrida>/`, `Files/agente/<AGENTE>/` |
-| Configuración y estado | **Una** SQL database de control: `config` (inventario), `meta` (metadata del pipeline), `log` (corridas), `mon` (SLA y alertas), `dq` (reglas y resultados de calidad) | Inventario, MDP, PRF, MON, CAL |
+| Configuración y estado | **Una** SQL database de control: `config` (inventario), `meta` (metadata del pipeline), `log` (corridas), `mon` (SLA y alertas), `dq` (reglas y resultados de calidad), `cat` (dueños de activos) | Inventario, MDP, PRF, MON, CAL, CAT |
 | Listas compartidas | [`Comun/`](../Comun/README.md) en el repo, `Files/comun/` en el lakehouse | DOC, PRF |
 | Matriz de accesos | `seguridad/` del repo de la implementación, aprobada por PR. Los scripts generados, en `Files/seguridad/scripts/` | SEG |
 | Secretos | Azure Key Vault, leídos con `notebookutils.credentials.getSecret` | DOC (opción B) |
@@ -68,6 +68,7 @@ Una SQL database por ambiente (la que ya existe, `DB_TDM_Platform`, o la que se 
 | `meta` | Metadata del pipeline medallion | Scripts revisados (`alta_<origen>.sql`) |
 | `log` | Corridas y pasos | El pipeline, vía `log.usp_*` |
 | `dq` | Reglas de calidad y reconciliación y sus resultados | Reglas: scripts revisados (`alta_reglas_calidad.sql`). Resultados: el pipeline, vía `dq.usp_LOG_RESULTADOS` |
+| `cat` | Dueño, área y criticidad de cada activo del linaje | Scripts revisados (`alta_activos.sql`). El linaje en sí vive en el lakehouse (`catalogo.*`), lo escribe `NB_CAT_01` |
 | `mon` | SLA por grupo de carga y alertas | `NB_MON_01` vía `mon.usp_SYNC_ALERTAS`; los SLA, una persona |
 
 Por qué una: describen la misma plataforma y se cruzan (catálogo, monitoreo); hay una sola conexión, un solo backup y un solo despliegue por ambiente. Los permisos se separan por esquema. Dos bases solo tienen sentido si cada una tiene otro dueño u otra política de seguridad.

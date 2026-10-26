@@ -222,7 +222,7 @@ Cada skill está en `<Caso>/skill/<nombre>/` con su `SKILL.md` y sus plantillas.
 
 ## 8. Skills de BIA Time Agent (copia)
 
-Vienen del repo [bia-da-agentic](bia_da_agentic.md) y están copiadas (con los ejemplos de clientes anonimizados) en [`BIA_Time_Agent/skill/`](../BIA_Time_Agent/README.md). No trabajan sobre Fabric: ayudan a cada colaborador a revisar y cargar sus horas en Redmine, con evidencias de Microsoft 365 (solo metadatos). Las reglas de la sección 5 no aplican; las suyas están en `bia-time-agent`. Se editan en el repo de origen, nunca acá.
+Vienen del repo [bia-da-agentic](../Agentes_Data_Analytics/bia_da_agentic.md) y están copiadas (con los ejemplos de clientes anonimizados) en [`Agentes_Data_Analytics/BIA_Time_Agent/skill/`](../Agentes_Data_Analytics/BIA_Time_Agent/README.md). No trabajan sobre Fabric: ayudan a cada colaborador a revisar y cargar sus horas en Redmine, con evidencias de Microsoft 365 (solo metadatos). Las reglas de la sección 5 no aplican; las suyas están en `bia-time-agent`. Se editan en el repo de origen, nunca acá.
 
 | Skill | Usala cuando… | Escribe en Redmine |
 |---|---|---|
@@ -240,4 +240,4 @@ Vienen del repo [bia-da-agentic](bia_da_agentic.md) y están copiadas (con los e
 | Revisar o recuperar | Revisar (`review-time-period`) muestra huecos y no lee el calendario. Recuperar (`recover-missing-time-period`) lee evidencias y propone cargas |
 | Una carga o varias | Una: `propose-time-entry`. Varias o un período: `prepare-multi-day-entries` |
 
-Requieren los MCP `redmine`, `vacation-tracker`, `bia-workdays` y `bia-m365` y la configuración personal; se instalan con `npm run install-user` desde `bia-da-agentic`. Detalle y flujo en el [README de la copia](../BIA_Time_Agent/README.md).
+Requieren los MCP `redmine`, `vacation-tracker`, `bia-workdays` y `bia-m365` y la configuración personal; se instalan con `npm run install-user` desde `bia-da-agentic`. Detalle y flujo en el [README de la copia](../Agentes_Data_Analytics/BIA_Time_Agent/README.md).

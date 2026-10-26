@@ -1,6 +1,6 @@
 # BIA Time Agent: skills (copia)
 
-**En corto:** copia de las 14 skills de BIA Time Agent, el agente que ayuda a cada colaborador de BIA a revisar y cargar sus horas en Redmine. Son 13 skills de procedimiento y `bia-time-agent`, el agente completo para Claude que arma `npm run build`. La fuente es el repo [bia-da-agentic](../docs/bia_da_agentic.md) de Azure DevOps: **acá no se editan**, se vuelven a copiar cuando cambia la versión.
+**En corto:** copia de las 14 skills de BIA Time Agent, el agente que ayuda a cada colaborador de BIA a revisar y cargar sus horas en Redmine. Son 13 skills de procedimiento y `bia-time-agent`, el agente completo para Claude que arma `npm run build`. La fuente es el repo [bia-da-agentic](../bia_da_agentic.md) de Azure DevOps: **acá no se editan**, se vuelven a copiar cuando cambia la versión.
 
 Copia del 2026-10-26, `main` en el commit `dbdbcd1` (BIA Time Agent v0.20.0), carpeta `.claude/skills/`. El único cambio frente al origen: los clientes, dominios y números de issue de los ejemplos se reemplazaron por genéricos (`Cliente Ejemplo`, `cliente-ejemplo.com`, `ACME`, `CLI`, `#10001`, `#1001`, `#1002`). Las reglas y el texto son los mismos.
 
@@ -62,18 +62,18 @@ No funcionan sueltas. Necesitan lo que instala `npm run install-user` en el repo
 | MCP `bia-m365` (propio) | Metadatos de Microsoft 365 vía Microsoft Graph, solo lectura |
 | `~/.bia-time-agent/config.yaml` | Configuración personal (jornada, ID de Entra, prefijos de cliente) |
 
-Para instalarlas y usarlas, seguir [Instalación y uso](../docs/copilot-javier-ramos/Agentes-de-IA/BIA-Time-Agent/Instalación-y-uso.md) de la wiki y el `README.md` de `bia-da-agentic`, no esta copia.
+Para instalarlas y usarlas, seguir la página *Instalación y uso* de BIA Time Agent en la [wiki de Copilot](https://dev.azure.com/cloudbia/BIA%20-%20Data%20Analytics/_wiki) (cuenta de BIA) y el `README.md` de `bia-da-agentic`, no esta copia.
 
 ## Actualizar la copia
 
 ```powershell
-# En el clon local (ver docs/bia_da_agentic.md)
+# En el clon local (ver Agentes_Data_Analytics/bia_da_agentic.md)
 cd $HOME\dev\bia-da-agentic
 git pull
 git log -1 --oneline   # anotar commit y versión en este README
 ```
 
-Copiar `.claude/skills/*` a `BIA_Time_Agent/skill/`, volver a reemplazar los ejemplos de clientes y de issues por genéricos, revisar el diff (sin credenciales, sin datos de colaboradores) y abrir un PR. Si cambia la cantidad de skills, actualizar este README y el [catálogo](../docs/catalogo_skills.md).
+Copiar `.claude/skills/*` a `Agentes_Data_Analytics/BIA_Time_Agent/skill/`, volver a reemplazar los ejemplos de clientes y de issues por genéricos, revisar el diff (sin credenciales, sin datos de colaboradores) y abrir un PR. Si cambia la cantidad de skills, actualizar este README y el [catálogo](../../docs/catalogo_skills.md).
 
 ### Validación
 

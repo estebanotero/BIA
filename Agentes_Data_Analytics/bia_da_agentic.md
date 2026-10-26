@@ -1,6 +1,6 @@
 # Repo bia-da-agentic: clonarlo y entenderlo
 
-**En corto:** `bia-da-agentic` es el repo de Azure DevOps donde vive BIA Time Agent (y donde irían los próximos agentes de Data Analytics, como Ayudin). Es privado: se clona con la cuenta de BIA. Esta página dice cómo clonarlo en Windows y qué hay en cada carpeta. Los conceptos están en la [guía de la wiki de Copilot](guia_wiki_copilot.md).
+**En corto:** `bia-da-agentic` es el repo de Azure DevOps donde vive BIA Time Agent (y donde irían los próximos agentes de Data Analytics, como Ayudin). Es privado: se clona con la cuenta de BIA. Esta página dice cómo clonarlo en Windows y qué hay en cada carpeta. Los conceptos están en la [página de conceptos](conceptos_agentes.md).
 
 Revisión del 2026-10-26 sobre `main` en el commit `dbdbcd1` (merge del PR 733, BIA Time Agent v0.20.0).
 
@@ -40,7 +40,7 @@ git log -1 --oneline
 | Carpeta o archivo | Qué es | En la analogía de la wiki |
 |---|---|---|
 | `agent.yaml` | Definición única del agente: núcleo de reglas, herramientas, modelo y reglas de BIA | El reglamento |
-| `.claude/skills/` | Las 13 skills (y la versión del agente para Claude, generada). Copia en [`BIA_Time_Agent/`](../BIA_Time_Agent/README.md) | Los procedimientos |
+| `.claude/skills/` | Las 13 skills (y la versión del agente para Claude, generada). Copia en [`BIA_Time_Agent/`](BIA_Time_Agent/README.md) | Los procedimientos |
 | `.github/agents/` | El agente para GitHub Copilot, generado desde `agent.yaml` | — |
 | `mcp/bia-workdays/` | MCP propio: fechas, feriados, redondeos, sumas y clasificaciones | La calculadora |
 | `mcp/bia-m365/` | MCP propio: metadatos de Microsoft 365 vía Microsoft Graph, solo lectura | Una ventanilla |
@@ -59,7 +59,7 @@ git log -1 --oneline
 | `npm test` | Pruebas automáticas de los MCP propios |
 | `npm run install-user` | Instala agente, skills y MCP propios en la máquina y crea la configuración personal |
 
-Para instalar y usar BIA Time Agent, seguir [Instalación y uso](copilot-javier-ramos/Agentes-de-IA/BIA-Time-Agent/Instalación-y-uso.md). La wiki marca Windows como pendiente de validar (D-20).
+Para instalar y usar BIA Time Agent, seguir la página *Instalación y uso* de BIA Time Agent en la [wiki de Copilot](https://dev.azure.com/cloudbia/BIA%20-%20Data%20Analytics/_wiki). La wiki marca Windows como pendiente de validar (D-20).
 
 ## Próximos pasos
 

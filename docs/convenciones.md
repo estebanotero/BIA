@@ -21,6 +21,8 @@ Revisión del 2026-10-24 sobre `main` (después del merge del PR #5). Correccion
 └── pruebas/           prueba_local.py: lógica de los notebooks sin Fabric
 ```
 
+`Agentes_Data_Analytics/` no es un caso y no sigue esta estructura: junta conceptos, el mapa de `bia-da-agentic` y la copia de las skills de BIA Time Agent (ver su [README](../Agentes_Data_Analytics/README.md)).
+
 ### 1.2. Nombres
 
 | Qué | Convención | Ejemplos |

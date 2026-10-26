@@ -1,14 +1,14 @@
-# Guía de lectura de la wiki de Copilot
+# Agentes de Data Analytics: conceptos
 
-**En corto:** la [wiki de Copilot](copilot-javier-ramos/README.md) es el plan de Javier Ramos para que Data Analytics pase de usar la IA como un chat a construir agentes que trabajan con sus herramientas reales (Redmine, Fabric, Power BI). Esta página la resume, explica los conceptos que más confunden, analiza Ayudin YPFL y dice cómo leerla. La copia de la wiki no se toca: esta guía es un documento aparte.
+**En corto:** la [wiki de Copilot](https://dev.azure.com/cloudbia/BIA%20-%20Data%20Analytics/_wiki) (Azure DevOps, cuenta de BIA) es el plan de Javier Ramos para que Data Analytics pase de usar la IA como un chat a construir agentes que trabajan con sus herramientas reales (Redmine, Fabric, Power BI). Esta página junta lo que hace falta de esa wiki para entender los agentes y sus skills: los conceptos que más confunden, BIA Time Agent y Ayudin YPFL. Para el detalle (instalación, comandos, evolución) está la wiki original.
 
-Revisión del 2026-10-26 sobre la copia de `docs/copilot-javier-ramos` (wiki original en Azure DevOps). El repo del código, `bia-da-agentic`, está descripto en [bia_da_agentic.md](bia_da_agentic.md).
+Resumen del 2026-10-26 sobre la wiki original. La copia completa que había en este repo se sacó el mismo día: era material educativo y ocupaba 46 MB de imágenes. El repo del código, `bia-da-agentic`, está descripto en [bia_da_agentic.md](bia_da_agentic.md).
 
 ---
 
 ## 1. El mapa: seis niveles
 
-El [Overview](copilot-javier-ramos/overview.md) ordena la wiki como una escalera. Cada nivel tiene su página y se apoya en el anterior.
+El *Overview* de la wiki ordena la wiki como una escalera. Cada nivel tiene su página y se apoya en el anterior.
 
 ```mermaid
 flowchart LR
@@ -80,7 +80,7 @@ Línea base (julio a septiembre de 2026): el 74 % de las cargas llega en términ
 
 ### 5.1. Qué es
 
-Ayudin todavía no es un agente: es el relevamiento previo para construir uno. La [página](copilot-javier-ramos/Agentes-de-IA/Ayudin-Agent/Ayudin-YPFL.md) es un borrador de Javier sobre el trabajo de dos personas en el proyecto de YPF Luz, y les pide que lo corrijan antes de diseñar nada: *"la meta no es documentar el proyecto; la meta es entender el trabajo para poder amplificarlo mediante IA"*.
+Ayudin todavía no es un agente: es el relevamiento previo para construir uno. La página de la wiki es un borrador de Javier sobre el trabajo de dos personas en el proyecto de YPF Luz, y les pide que lo corrijan antes de diseñar nada: *"la meta no es documentar el proyecto; la meta es entender el trabajo para poder amplificarlo mediante IA"*.
 
 Contexto del proyecto, según la wiki:
 
@@ -138,14 +138,16 @@ El enfoque es sólido: arranca por el trabajo y no por la herramienta, igual que
 
 Superposición a resolver: el control de estructura que la wiki pone como tarea de ingeniería (frenar el pipeline y avisar por Teams) y el File Inspector atacan el mismo problema. El control va en el pipeline, porque corre siempre; el inspector entra cuando el pipeline frena, para explicar qué cambió.
 
-## 6. Cómo leer la wiki
+## 6. Si querés ir a la wiki original
 
-1. [Overview](copilot-javier-ramos/overview.md).
-2. [Qué es un MCP](copilot-javier-ramos/Qué-es-un-MCP.md).
-3. [MCP de Redmine](copilot-javier-ramos/MCP-de-Redmine.md) y [Qué es GitHub Copilot CLI](copilot-javier-ramos/MCP-de-Redmine/Que-es-GitHub-Copilot-CLI.md).
-4. [Qué es Azure CLI](copilot-javier-ramos/MCP-de-Fabric/Que-es-Azure-CLI.md), [MCP de Fabric](copilot-javier-ramos/MCP-de-Fabric.md) y [MCP de Power BI](copilot-javier-ramos/MCP-de-Power-BI.md).
-5. [BIA Time Agent](copilot-javier-ramos/Agentes-de-IA/BIA-Time-Agent.md): MVP, Capacidades y Arquitectura. Evolución es la más larga: el resumen y las métricas alcanzan salvo que vayas a contribuir.
-6. [Ayudin YPFL](copilot-javier-ramos/Agentes-de-IA/Ayudin-Agent/Ayudin-YPFL.md).
+Orden recomendado, en la [wiki de Copilot](https://dev.azure.com/cloudbia/BIA%20-%20Data%20Analytics/_wiki):
+
+1. *Overview*.
+2. *Qué es un MCP*.
+3. *MCP de Redmine* y *Qué es GitHub Copilot CLI*.
+4. *Qué es Azure CLI*, *MCP de Fabric* y *MCP de Power BI*.
+5. *BIA Time Agent*: MVP, Capacidades y Arquitectura. Evolución es la más larga: el resumen y las métricas alcanzan salvo que vayas a contribuir. Sus skills están en [BIA_Time_Agent/](BIA_Time_Agent/README.md).
+6. *Ayudin YPFL*.
 
 Se pueden saltear los pasos de instalación (Redmine en Windows, Instalación y uso, comandos de Azure CLI) y la página de Azure DevOps, que está en construcción.
 

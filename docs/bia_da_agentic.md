@@ -59,7 +59,7 @@ git log -1 --oneline
 | `npm test` | Pruebas automáticas de los MCP propios |
 | `npm run install-user` | Instala agente, skills y MCP propios en la máquina y crea la configuración personal |
 
-Para instalar y usar BIA Time Agent, seguir [Instalación y uso](copilot-javier-ramos/Agentes-de-IA/BIA-Time-Agent/Instalación-y-uso.md). La wiki marca Windows como pendiente de validar (D-20).
+Para instalar y usar BIA Time Agent, seguir [Instalación y uso](copilot-javier-ramos/Agentes-de-IA/BIA-Time-Agent/Instalación-y-uso.md). La wiki marca Windows como pendiente de validar (D-20). Para usarlo desde VS Code, ver [BIA Time Agent en VS Code](bia_time_agent_vscode.md).
 
 ## Próximos pasos
 

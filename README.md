@@ -41,6 +41,7 @@ El patrón es el mismo en todos: **un notebook deja los datos listos, Claude tra
 | [Wiki de Copilot (copia)](docs/copilot-javier-ramos/README.md) | Copia de la wiki de Javier Ramos sobre MCP, Copilot y agentes de Data Analytics (BIA Time Agent, Ayudin) |
 | [Guía de lectura de la wiki de Copilot](docs/guia_wiki_copilot.md) | Resumen, conceptos clave con diagramas, análisis de Ayudin YPFL y orden de lectura |
 | [Repo bia-da-agentic](docs/bia_da_agentic.md) | Cómo clonar en Windows el repo de los agentes de Data Analytics y qué hay en cada carpeta |
+| [BIA Time Agent en VS Code](docs/bia_time_agent_vscode.md) | Usar el agente desde VS Code en Windows, reutilizando el MCP de Redmine ya configurado |
 
 ## Cómo se conectan los casos
 

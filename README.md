@@ -36,6 +36,7 @@ El patrón es el mismo en todos: **un notebook deja los datos listos, Claude tra
 
 | Documento | Qué tiene |
 |---|---|
+| [Catálogo de skills](docs/catalogo_skills.md) | Las diez skills de Claude: qué hace cada una, en qué situación usarla, cuáles se confunden y cómo se encadenan |
 | [Convenciones](docs/convenciones.md) | Estructura de carpetas, nombres, rutas del lakehouse, una sola base de control, dónde van los artefactos de cada implementación y los desvíos corregidos |
 | [Frameworks propuestos](docs/frameworks_propuestos.md) | Lo que falta para llevar esto a producción (costos y capacidad), priorizado. CI/CD, monitoreo, seguridad, calidad, historia con bajas y catálogo ya están construidos |
 | [Wiki de Copilot (copia)](docs/copilot-javier-ramos/README.md) | Copia de la wiki de Javier Ramos sobre MCP, Copilot y agentes de Data Analytics (BIA Time Agent, Ayudin) |
@@ -146,7 +147,7 @@ Las pruebas locales corren en cada PR con [`.github/workflows/pruebas.yml`](.git
 
 ## Instalar las skills
 
-Cada skill está en `<Caso>/skill/<nombre>/`. Para Claude Code, copiá la carpeta a `.claude/skills/` del proyecto donde trabajás; en claude.ai, subila como skill. Las diez skills de BIA se pueden instalar juntas: cada una dice en su `description` cuándo usarla.
+Qué hace cada skill y cuándo conviene usarla está en el [catálogo de skills](docs/catalogo_skills.md). Cada skill está en `<Caso>/skill/<nombre>/`. Para Claude Code, copiá la carpeta a `.claude/skills/` del proyecto donde trabajás; en claude.ai, subila como skill. Las diez skills de BIA se pueden instalar juntas: cada una dice en su `description` cuándo usarla.
 
 ## Estructura
 
@@ -155,6 +156,7 @@ BIA/
 ├── README.md
 ├── .github/workflows/pruebas.yml
 ├── docs/
+│   ├── catalogo_skills.md
 │   ├── convenciones.md
 │   └── frameworks_propuestos.md
 ├── Comun/                         patrones_sensibles.json

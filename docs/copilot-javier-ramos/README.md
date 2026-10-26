@@ -4,6 +4,8 @@
 
 Esta copia conserva las 17 páginas y los 23 adjuntos referenciados. Se ajustaron únicamente las rutas de imágenes y tres enlaces internos para que funcionen dentro de GitHub.
 
+Para una lectura guiada, con los conceptos clave y el análisis de Ayudin YPFL, ver la [guía de lectura](../guia_wiki_copilot.md). Para clonar el repo del código, ver [bia_da_agentic.md](../bia_da_agentic.md).
+
 ## Índice
 
 - [Overview](overview.md)

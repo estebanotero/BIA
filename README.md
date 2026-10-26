@@ -38,6 +38,9 @@ El patrón es el mismo en todos: **un notebook deja los datos listos, Claude tra
 |---|---|
 | [Convenciones](docs/convenciones.md) | Estructura de carpetas, nombres, rutas del lakehouse, una sola base de control, dónde van los artefactos de cada implementación y los desvíos corregidos |
 | [Frameworks propuestos](docs/frameworks_propuestos.md) | Lo que falta para llevar esto a producción (costos y capacidad), priorizado. CI/CD, monitoreo, seguridad, calidad, historia con bajas y catálogo ya están construidos |
+| [Wiki de Copilot (copia)](docs/copilot-javier-ramos/README.md) | Copia de la wiki de Javier Ramos sobre MCP, Copilot y agentes de Data Analytics (BIA Time Agent, Ayudin) |
+| [Guía de lectura de la wiki de Copilot](docs/guia_wiki_copilot.md) | Resumen, conceptos clave con diagramas, análisis de Ayudin YPFL y orden de lectura |
+| [Repo bia-da-agentic](docs/bia_da_agentic.md) | Cómo clonar en Windows el repo de los agentes de Data Analytics y qué hay en cada carpeta |
 
 ## Cómo se conectan los casos
 

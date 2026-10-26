@@ -40,7 +40,7 @@ git log -1 --oneline
 | Carpeta o archivo | Qué es | En la analogía de la wiki |
 |---|---|---|
 | `agent.yaml` | Definición única del agente: núcleo de reglas, herramientas, modelo y reglas de BIA | El reglamento |
-| `.claude/skills/` | Las 13 skills (y la versión del agente para Claude, generada) | Los procedimientos |
+| `.claude/skills/` | Las 13 skills (y la versión del agente para Claude, generada). Copia en [`BIA_Time_Agent/`](../BIA_Time_Agent/README.md) | Los procedimientos |
 | `.github/agents/` | El agente para GitHub Copilot, generado desde `agent.yaml` | — |
 | `mcp/bia-workdays/` | MCP propio: fechas, feriados, redondeos, sumas y clasificaciones | La calculadora |
 | `mcp/bia-m365/` | MCP propio: metadatos de Microsoft 365 vía Microsoft Graph, solo lectura | Una ventanilla |

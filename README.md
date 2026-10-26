@@ -36,7 +36,8 @@ El patrón es el mismo en todos: **un notebook deja los datos listos, Claude tra
 
 | Documento | Qué tiene |
 |---|---|
-| [Catálogo de skills](docs/catalogo_skills.md) | Las diez skills de Claude: qué hace cada una, en qué situación usarla, cuáles se confunden y cómo se encadenan |
+| [Catálogo de skills](docs/catalogo_skills.md) | Las diez skills de datos: qué hace cada una, en qué situación usarla, cuáles se confunden y cómo se encadenan. Suma las de BIA Time Agent |
+| [Skills de BIA Time Agent (copia)](BIA_Time_Agent/README.md) | Las 14 skills del agente de carga de horas en Redmine, copiadas de `bia-da-agentic` v0.20.0, con los ejemplos de clientes anonimizados |
 | [Convenciones](docs/convenciones.md) | Estructura de carpetas, nombres, rutas del lakehouse, una sola base de control, dónde van los artefactos de cada implementación y los desvíos corregidos |
 | [Frameworks propuestos](docs/frameworks_propuestos.md) | Lo que falta para llevar esto a producción (costos y capacidad), priorizado. CI/CD, monitoreo, seguridad, calidad, historia con bajas y catálogo ya están construidos |
 | [Wiki de Copilot (copia)](docs/copilot-javier-ramos/README.md) | Copia de la wiki de Javier Ramos sobre MCP, Copilot y agentes de Data Analytics (BIA Time Agent, Ayudin) |

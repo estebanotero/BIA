@@ -1,12 +1,12 @@
 # Catálogo de skills de BIA
 
-**En corto:** BIA tiene **diez skills de Claude**, una por caso (el inventario no tiene). Todas siguen la misma regla: Claude lee lo que dejó un notebook, propone archivos (CSV, SQL, Markdown o un PR) y **una persona revisa y aplica**. Ninguna escribe en Fabric. Esta página dice qué hace cada una y en qué situación conviene usarla.
+**En corto:** BIA tiene **diez skills de Claude** para los casos de datos, una por caso (el inventario no tiene), y una **copia de las 14 skills de BIA Time Agent** (carga de horas en Redmine, sección 8). Todas siguen la misma regla: Claude lee lo que dejó un notebook, propone archivos (CSV, SQL, Markdown o un PR) y **una persona revisa y aplica**. Ninguna escribe en Fabric. Esta página dice qué hace cada una y en qué situación conviene usarla.
 
-Relevamiento del 2026-10-26 sobre `main` (después del merge del PR #12).
+Relevamiento del 2026-10-26 sobre `main` (después del merge del PR #12). Sección 8 agregada el mismo día desde `bia-da-agentic` v0.20.0.
 
 ---
 
-## 1. Las diez skills de un vistazo
+## 1. Las diez skills de datos de un vistazo
 
 | Skill | Caso | Para qué sirve | Usala cuando… | Necesita antes |
 |---|---|---|---|---|
@@ -219,3 +219,25 @@ Las flechas punteadas son derivaciones: por ejemplo, `diagnosticar-plataforma` e
 ## 7. Instalarlas
 
 Cada skill está en `<Caso>/skill/<nombre>/` con su `SKILL.md` y sus plantillas. En Claude Code, copiá la carpeta a `.claude/skills/` del proyecto; en claude.ai, subila como skill. Se pueden instalar las diez juntas: cada una dice en su `description` cuándo usarla, y Claude elige sola.
+
+## 8. Skills de BIA Time Agent (copia)
+
+Vienen del repo [bia-da-agentic](bia_da_agentic.md) y están copiadas (con los ejemplos de clientes anonimizados) en [`BIA_Time_Agent/skill/`](../BIA_Time_Agent/README.md). No trabajan sobre Fabric: ayudan a cada colaborador a revisar y cargar sus horas en Redmine, con evidencias de Microsoft 365 (solo metadatos). Las reglas de la sección 5 no aplican; las suyas están en `bia-time-agent`. Se editan en el repo de origen, nunca acá.
+
+| Skill | Usala cuando… | Escribe en Redmine |
+|---|---|---|
+| `bia-time-agent` | Es el punto de entrada: el agente completo, que carga las demás | Solo lo confirmado |
+| `review-time-period` | "¿Qué días me faltan cargar?", "mostrame mis horas" | No |
+| `recover-missing-time-period` | "Recuperá desde mi última carga", "completá la semana pasada" | Sí, tras confirmar |
+| `propose-time-entry` | "Cargame 2 h de ayer en la reunión con el cliente" | No |
+| `prepare-multi-day-entries` | Varios días, una actividad recurrente o el lote de una recuperación | No |
+| `create-time-entry` | Después de una propuesta aprobada | Sí |
+| `resolve-time-range`, `identify-working-days`, `resolve-time-context` | Las usan las anteriores para fechas, jornada, feriados, licencias y destino | No |
+| `collect-work-evidence`, `normalize-work-evidence`, `classify-work-context`, `estimate-work-duration`, `reconcile-evidence-with-time-entries` | Pasos internos de una recuperación | No |
+
+| Duda | Cuál usar |
+|---|---|
+| Revisar o recuperar | Revisar (`review-time-period`) muestra huecos y no lee el calendario. Recuperar (`recover-missing-time-period`) lee evidencias y propone cargas |
+| Una carga o varias | Una: `propose-time-entry`. Varias o un período: `prepare-multi-day-entries` |
+
+Requieren los MCP `redmine`, `vacation-tracker`, `bia-workdays` y `bia-m365` y la configuración personal; se instalan con `npm run install-user` desde `bia-da-agentic`. Detalle y flujo en el [README de la copia](../BIA_Time_Agent/README.md).
